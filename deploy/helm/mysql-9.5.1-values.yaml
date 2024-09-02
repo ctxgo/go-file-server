@@ -1,0 +1,109 @@
+global:
+  # imagePullSecrets:
+  #   - harbor-secrets
+  storageClass: "local-path"
+
+image:
+  registry: docker.io
+  repository: bitnami/mysql
+  tag: 8.0.29-debian-11-r0
+
+## @param architecture MySQL architecture (`standalone` or `replication`)
+## 单节点模式
+architecture: standalone
+
+auth:
+  ## @param auth.rootPassword Password for the `root` user. Ignored if existing secret is provided
+  ## ref: https://github.com/bitnami/bitnami-docker-mysql#setting-the-root-password-on-first-run
+  ##
+  rootPassword: "yourpassword"
+  ## @param auth.database Name for a custom database to create
+  ## ref: https://github.com/bitnami/bitnami-docker-mysql/blob/master/README.md#creating-a-database-on-first-run
+  ##
+  database: dev
+  ## @param auth.username Name for a custom user to create
+  ## ref: https://github.com/bitnami/bitnami-docker-mysql/blob/master/README.md#creating-a-database-user-on-first-run
+  ##
+  username: "gyt"
+  ## @param auth.password Password for the new user. Ignored if existing secret is provided
+  ##
+  password: "yourpassword"
+  #standalone 模式以下配置失效
+  #从库这个用户名replicator不要修改，会导致slave起不来
+  #replicationUser: replicator
+  ### @param auth.replicationPassword MySQL replication user password. Ignored if existing secret is provided
+  ###
+  #replicationPassword: "gtml"
+
+#主
+primary:
+  #service:
+  #  type: NodePort
+  #  nodePorts:
+  #    mysql: "33306"
+  resources:
+    ## Example:
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+    requests:
+      cpu: 50m
+      memory: 256Mi
+  ## @param primary.command Override default container command on MySQL Primary container(s) (useful when using custom images)
+  persistence:
+    ## @param primary.persistence.enabled Enable persistence on MySQL primary replicas using a `PersistentVolumeClaim`. If false, use emptyDir
+    enabled: true
+    size: 50Gi
+  configuration: |-
+    [mysqld]
+    #官方chat配置
+    default_authentication_plugin=mysql_native_password
+    skip-name-resolve
+    explicit_defaults_for_timestamp
+    basedir=/opt/bitnami/mysql
+    plugin_dir=/opt/bitnami/mysql/lib/plugin
+    port=3306
+    socket=/opt/bitnami/mysql/tmp/mysql.sock
+    datadir=/bitnami/mysql/data
+    tmpdir=/opt/bitnami/mysql/tmp
+    max_allowed_packet=16M
+    bind-address=0.0.0.0
+    pid-file=/opt/bitnami/mysql/tmp/mysqld.pid
+    log-error=/opt/bitnami/mysql/logs/mysqld.log
+    character-set-server=UTF8
+    collation-server=utf8_general_ci
+    slow_query_log=0
+    slow_query_log_file=/opt/bitnami/mysql/logs/mysqld.log
+    long_query_time=10.0
+    #自定义配置
+    log-bin=mysql-bin
+    binlog_format=row
+    expire_logs_days = 3
+    innodb_buffer_pool_instances = 8
+    innodb_data_file_path = ibdata1:10M:autoextend
+    innodb_flush_log_at_trx_commit = 0
+    innodb_log_files_in_group = 3
+    innodb_file_per_table = 1
+    innodb_log_file_size = 1G
+    innodb_log_buffer_size = 200M
+    innodb_buffer_pool_size= 1G
+
+    [client]
+    port=3306
+    socket=/opt/bitnami/mysql/tmp/mysql.sock
+    default-character-set=UTF8
+    plugin_dir=/opt/bitnami/mysql/lib/plugin
+
+    [manager]
+    port=3306
+    socket=/opt/bitnami/mysql/tmp/mysql.sock
+    pid-file=/opt/bitnami/mysql/tmp/mysqld.pid
+
+#standalone 模式以下配置失效
+#secondary:
+#  ## @param secondary.replicaCount Number of MySQL secondary replicas
+#  ##
+#  replicaCount: 1
+#  persistence:
+#    enabled: true
+#    size: 100Gi

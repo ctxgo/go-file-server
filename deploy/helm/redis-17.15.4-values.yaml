@@ -1,0 +1,52 @@
+global:
+  storageClass: "local-path"
+  # Global Redis password (overrides auth.password)
+  redis:
+    password: "yourpassword"
+
+# Allowed values: `standalone` or `replication`
+architecture: replication
+
+
+image:
+  registry: docker.io
+  repository: bitnami/redis
+  tag: 7.2.0-debian-11-r0
+
+commonConfiguration: |-
+  # Enable AOF https://redis.io/topics/persistence#append-only-file
+  appendonly yes
+  # Disable RDB persistence, AOF persistence already enabled.
+  save ""
+  databases 32
+
+master:
+  count: 1
+  # 定义redis master容器的持久化配置，
+  persistence:
+    enabled: true
+    size: 10Gi
+  # 定义redis master容器的limits和requested，
+  resources:
+    limits:
+      cpu: "1"
+      memory: 1000Mi
+    requests:
+      cpu: 50m
+      memory: 300Mi
+
+replica:
+  # 定义Redis从节点的数量
+  replicaCount: 0
+  # 定义redis副本容器的持久化配置，注意sentinel集群中redis容器的持久化配置也会从此处读取
+  persistence:
+    enabled: true
+    size: 20Gi
+  # 定义redis副本容器的limits和requested，注意sentinel集群中redis容器的资源配置也会从此处读取
+  resources:
+    limits:
+      cpu: "1"
+      memory: 1000Mi
+    requests:
+      cpu: 50m
+      memory: 300Mi

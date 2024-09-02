@@ -1,0 +1,4 @@
+2024-08-24 15:09:06	INFO	zlog/zlog.go:41	  **********日志初始化完成 输出级别=[debug]**********
+2024-08-24 15:09:08	INFO	zlog/zlog_test.go:16	test
+2024-08-24 15:10:54	INFO	zlog/zlog.go:41	  **********日志初始化完成 输出级别=[info]**********
+2024-08-24 15:10:56	INFO	zlog/zlog_test.go:16	test

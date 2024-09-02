@@ -1,0 +1,188 @@
+backend:
+  image:
+    repository: ctxgo/go-file-server
+    tag: latest
+    pullPolicy: IfNotPresent
+
+  nodeSelector: {}
+
+  tolerations:
+    # - operator: Exists
+  existingConfigMap: go-file-server
+
+  persistence:
+    enabled: true
+    existingClaim: ""
+    #storageClass: "ceph-filesystem"
+    accessModes:
+      - ReadWriteOnce
+    size: 20Gi
+    # PVC的Annotations
+    annotations: {}
+    # annotations:
+    #   volume.beta.kubernetes.io/storage-provisioner: fuseim.pri/ifs
+    # PVC的Labels
+    labels: {}
+    # 为pvc选取一个事先存在的pv
+    selector: {}
+    # selector:
+    #   matchLabels:
+    #     app: my-app
+    # Mount path of app data volume
+    mountPath: /basedir
+
+  service:
+    ports:
+      # name不要修改，被ingress依赖
+      - name: http
+        containerPort: 9090
+        protocol: TCP
+
+  deployment:
+    kind: Deployment
+
+  # 亲和性策略
+  # affinity:
+  #   nodeAffinity:
+  #     matchExpressions:
+  #       key: foo
+  #       operator: In
+  #       values:
+  #         - bar
+
+
+  resources:
+    limits:
+      cpu: 500m
+      memory: 1Gi
+    requests:
+      cpu: 50m
+      memory: 500Mi
+
+  # 就绪性探针，用于判断容器是否准备好处理请求
+  readinessProbe:
+    initialDelaySeconds: 10
+    successThreshold: 1
+    failureThreshold: 3
+    timeoutSeconds: 10
+    periodSeconds: 5
+    tcpSocket:
+      port: 9090
+
+  # 生存性探针，用于判断容器是否正常运行
+  livenessProbe:
+    initialDelaySeconds: 10
+    successThreshold: 1
+    failureThreshold: 3
+    timeoutSeconds: 10
+    periodSeconds: 5
+    # 原http接口为: /actuator/health
+    tcpSocket:
+      port: 9090
+
+  env:
+    - name: TZ
+      value: Asia/Shanghai
+
+
+frontend:
+  image:
+    repository: ctxgo/go-file-server-ui
+    tag: latest
+    pullPolicy: IfNotPresent
+
+  service:
+    ports:
+      # name不要修改，被ingress依赖
+      - name: http
+        containerPort: 80
+        protocol: TCP
+
+  deployment:
+    kind: Deployment
+
+  # 亲和性策略
+  # affinity:
+  #   nodeAffinity:
+  #     matchExpressions:
+  #       key: foo
+  #       operator: In
+  #       values:
+  #         - bar
+
+  resources:
+    limits:
+      cpu: 500m
+      memory: 2816Mi
+    requests:
+      cpu: 20m
+      memory: 1792Mi
+
+  # 就绪性探针，用于判断容器是否准备好处理请求
+  readinessProbe:
+    initialDelaySeconds: 5
+    successThreshold: 1
+    failureThreshold: 3
+    timeoutSeconds: 2
+    periodSeconds: 2
+    tcpSocket:
+      port: 80
+
+  # 生存性探针，用于判断容器是否正常运行
+  livenessProbe:
+    initialDelaySeconds: 5
+    successThreshold: 1
+    failureThreshold: 3
+    timeoutSeconds: 2
+    periodSeconds: 2
+    tcpSocket:
+      port: 80
+
+  env:
+    - name: TZ
+      value: Asia/Shanghai
+
+
+ingress:
+  enabled: true
+  #className: nginx
+  annotations:
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+  hosts:
+    - host: example.com
+      service: backend
+      backendPort: 9090
+      paths:
+        - path: /api
+          pathType: Prefix
+    - host: example.com
+      service: frontend
+      backendPort: 80
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: example.com
+
+
+# ingressRoute:
+#   enabled: false
+#   # annotations:
+#   #   for: bar
+#   entryPoints:
+#     - web
+#     - websecure
+#   hostName: example.com
+#   expose:
+#     - service: backend
+#       pathPrefix: /api
+#       targetPort: 9090
+#     - service: frontend
+#       pathPrefix: /
+#       targetPort: 80
+#   tls:
+#      secretName: example-tls
+
+
+
+
