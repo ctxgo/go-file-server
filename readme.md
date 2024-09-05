@@ -50,14 +50,13 @@ git clone https://github.com/ctxgo/go-file-server.git
 # 进入项目目录
 cd go-file-server
 
-
 # 修改配置 
 vi ./config/config.yml
 # 更新整理依赖
 go mod tidy
 
 # 启动服务
-go run main.go server -v ./config/config.yml
+go run main.go server -c ./config/config.yml
 ```
 
 #### 构建docker镜像
