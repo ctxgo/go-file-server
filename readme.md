@@ -112,7 +112,7 @@ helm install redis bitnami/redis --version 17.15.4 --values redis-17.15.4-values
 # 添加app helm仓库
 helm repo add go-file-server https://ctxgo.github.io/helm-charts/
 
-# 如果修改了上述中间values配置,对于的配置文件也需要修改
+# 如果修改了上述中间values配置, 对应的配置文件也需要修改
 # 创建configMap
 kubectl create configmap go-file-server --from-file=config.yaml=config.yaml
 
