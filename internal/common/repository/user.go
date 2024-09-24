@@ -38,8 +38,17 @@ func (r *UserRepository) Update(updateFunc func(*models.SysUser), opts ...base.D
 	return r.Repo.Update(sysUser, opts...)
 }
 
+func (r *UserRepository) Updates(v any, opts ...base.DbScope) error {
+	opts = append(opts, base.WithModel(&models.SysUser{}))
+	return r.Repo.Update(v, opts...)
+}
+
 func WithUserId(userId int) base.DbScope {
 	return base.WithQuery("user_id = ?", userId)
+}
+
+func WithUserSource(s string) base.DbScope {
+	return base.WithQuery("source = ?", s)
 }
 
 func WithUserIds(userIds ...int) base.DbScope {
@@ -59,7 +68,7 @@ func WithPhone(phone string) base.DbScope {
 	return base.WithQuery("phone = ?", phone)
 }
 
-func WithStatus(s string) base.DbScope {
+func WithUserStatus(s string) base.DbScope {
 	return base.WithQuery("status = ?", s)
 }
 

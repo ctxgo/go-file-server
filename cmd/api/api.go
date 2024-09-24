@@ -23,7 +23,7 @@ func NewApiCommand() *cobra.Command {
 			app.Start()
 		},
 	}
-	rootCmd.Flags().StringP("config", "c", "./config.yaml", "user -c set Your congfile")
+	rootCmd.Flags().StringP("config", "c", "./config.yaml", "use -c set Your congfile")
 	return rootCmd
 }
 

@@ -40,6 +40,10 @@ func (r *DeptRepository) Save(value *models.SysDept) error {
 
 func WithDeptIds(ids ...int) base.DbScope {
 	return base.WithQuery("dept_id in ?", ids)
+}
+
+func WithDeptName(name string) base.DbScope {
+	return base.WithQuery("dept_name = ?", name)
 
 }
 

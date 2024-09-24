@@ -1,0 +1,68 @@
+  
+web:
+  http: 0.0.0.0:5556
+
+grpc:
+  addr: 0.0.0.0:5557
+  
+oauth2:
+  skipApprovalScreen: true
+
+#鉴权地址
+issuer: http://nginx-proxy:9000/dex
+
+#对于静态connectors，memory已经满足需求
+storage:
+  type: memory
+
+
+staticClients:
+- id: go-file-server-id
+  #认证回调地址，该地址应该配置位前端地址
+  redirectURIs:
+  - 'http://nginx-proxy:9000/login/callback'
+  name: 'go-file-server'
+  secret: ZXhhbXBsZS1hcHAtc2VjcmV0
+
+
+connectors:
+- type: ldap
+  name: OpenLDAP
+  id: ldap
+  config:
+    # The following configurations seem to work with OpenLDAP:
+    #
+    # 1) Plain LDAP, without TLS:
+    host: openldap-hosy:31309
+    insecureNoSSL: true
+
+    # This would normally be a read-only user.
+    bindDN: cn=admin,dc=example,dc=org
+    bindPW: yourpassword
+
+    usernamePrompt: UserName
+
+    userSearch:
+      baseDN: dc=example,dc=org
+      filter: "(objectClass=inetOrgPerson)"
+      username: uid
+      # "DN" (case sensitive) is a special attribute name. It indicates that
+      # this value should be taken from the entity's DN not an attribute on
+      # the entity.
+      idAttr: DN
+      emailAttr: mail
+      nameAttr: uid
+
+    groupSearch:
+      baseDN: dc=example,dc=org
+      filter: "(objectClass=groupOfNames)"
+
+      userMatchers:
+        # A user is a member of a group when their DN matches
+        # the value of a "member" attribute on the group entity.
+      - userAttr: DN
+        groupAttr: member
+
+      # The group name should be the "cn" value.
+      nameAttr: cn
+

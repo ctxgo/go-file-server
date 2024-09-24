@@ -1,4 +1,4 @@
-package auth
+package captcha
 
 import (
 	"go-file-server/internal/common/core"

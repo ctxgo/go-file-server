@@ -107,3 +107,16 @@ func (api *DeptApi) makeDeptPath(sysDept *models.SysDept) (string, error) {
 	return deptP.DeptPath + deptPath, nil
 
 }
+
+func (api *DeptApi) makeTopDeptPath(sysDept *models.SysDept) (string, error) {
+	deptPath := strconv.Itoa(sysDept.DeptId) + "/"
+	if *sysDept.ParentId == 0 {
+		return "/0/" + deptPath, nil
+	}
+	deptP, err := api.deptRepo.FindOne(repository.WithByDeptId(*sysDept.ParentId))
+	if err != nil {
+		return "", errors.WithStack(err)
+	}
+	return deptP.DeptPath + deptPath, nil
+
+}

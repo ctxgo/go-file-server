@@ -2,18 +2,18 @@ package config
 
 // Config 配置集合
 type Config struct {
-	Application *Application `yaml:"application"`
-	Logger      *Logger      `yaml:"logger"`
-	Jwt         *Jwt         `yaml:"jwt"`
-	Database    *Database    `yaml:"database"`
-	Cache       *Cache       `yaml:"cache"`
+	Application *Application `mapstructure:"application"`
+	Logger      *Logger      `mapstructure:"logger"`
+	Jwt         *Jwt         `mapstructure:"jwt"`
+	Database    *Database    `mapstructure:"database"`
+	Cache       *Cache       `mapstructure:"cache"`
+	OAuth       *OAuth       `mapstructure:"oauth"`
 }
 
 type Application struct {
-	Host      string
-	Port      string
-	JwtSecret string
-	Basedir   string
+	Host    string
+	Port    string
+	Basedir string
 }
 
 type Logger struct {
@@ -35,8 +35,28 @@ type Cache struct {
 	Memory interface{}
 }
 type RedisConnectOptions struct {
-	Addr     string `yaml:"addr" json:"addr"`
-	Username string `yaml:"username" json:"username"`
-	Password string `yaml:"password" json:"password"`
-	DB       int    `yaml:"db" json:"db"`
+	Addr     string `mapstructure:"addr" json:"addr"`
+	Username string `mapstructure:"username" json:"username"`
+	Password string `mapstructure:"password" json:"password"`
+	DB       int    `mapstructure:"db" json:"db"`
 }
+
+type OAuthGrpc struct {
+	Addr    string `mapstructure:"addr"`
+	TlsCert string `mapstructure:"tlsCert"`
+	TlsKey  string `mapstructure:"tlsKey"`
+	TlsCA   string `mapstructure:"tlsCA"`
+}
+
+type OAuth struct {
+	Enable       bool      `mapstructure:"enable"`
+	ClientID     string    `mapstructure:"clientID"`
+	ClientSecret string    `mapstructure:"clientSecret"`
+	RedirectUrl  string    `mapstructure:"redirectUrl"`
+	IssuerUrl    string    `mapstructure:"issuerUrl"`
+	State        string    `mapstructure:"state"`
+	Scopes       []string  `mapstructure:"scopes"`
+	Grpc         OAuthGrpc `mapstructure:"grpc"`
+}
+
+//mapstructure:"webhook" validate:"required"

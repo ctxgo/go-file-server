@@ -8,7 +8,7 @@ application:
 
 logger:
     #日志位置
-    path: "/var/log"
+    path: "./log"
     # 日志等级 debug, info, warn, error, fatal
     level: debug
 
@@ -24,8 +24,38 @@ database:
     source: root:yourpassword@tcp(mysql:3306)/dev?charset=utf8&parseTime=True&loc=Local&timeout=1000ms
 cache:
    #如果不指定则使用内存作为缓存
-   redis:
-     addr: redis:6379
-     password: yourpassword
-     db: 1
+  #  redis:
+  #    addr: redis:6379
+  #    password: yourpassword
+  #    db: 1
+
+# dex(ldap)认证相关配置
+oauth:
+  # 是否开启dex认证
+  enable: false
+  # 和 dex config.staticClients配置中的id一致
+  clientID: "go-file-server-id"
+  # 和 dex config.staticClients配置中的secret一致
+  clientSecret: "ZXhhbXBsZS1hcHAtc2VjcmV0"
+  # 和 dex config配置中的issuer一致
+  issuerUrl: "http://nginx-proxy:9000/dex"
+  # dex认证成功后回调地址，这里配置的前端地址拼接/login/callback
+  # 和 dex config.staticClients配置中的redirectURIs一致
+  redirectUrl: "http://nginx-proxy:9000/login/callback"
+  # dex grpc连接方式，用于获取connectors中ladp连接
+  grpc:
+    addr: "dex:5557"
+    # 如果未提供SSL凭证，则dex将以明文（HTTP）连接.
+    # tlsCert: /etc/dex/grpc.crt
+    # tlsKey: /etc/dex/grpc.key
+    # # Client auth CA.
+    # tlsCA: /etc/dex/client.crt
+  #一个自定义字符串，用于回调验证，防止 CSRF 攻击
+  state: "helloword"
+  scopes:
+    - "openid"
+    - "profile"
+    - "email"
+    - "offline_access"
+    - "groups"
 

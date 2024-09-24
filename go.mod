@@ -8,9 +8,13 @@ require (
 	github.com/blevesearch/bleve/v2 v2.4.1
 	github.com/casbin/casbin/v2 v2.80.0
 	github.com/casbin/gorm-adapter/v3 v3.25.0
+	github.com/coreos/go-oidc v2.2.1+incompatible
+	github.com/dexidp/dex v2.13.0+incompatible
+	github.com/dexidp/dex/api/v2 v2.2.0
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/fsnotify/fsnotify v1.7.0
 	github.com/gin-gonic/gin v1.9.1
+	github.com/go-ldap/ldap/v3 v3.4.8
 	github.com/go-playground/validator/v10 v10.15.5
 	github.com/go-sql-driver/mysql v1.7.0
 	github.com/h2non/filetype v1.1.3
@@ -24,6 +28,7 @@ require (
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/pkg/errors v0.9.1
 	github.com/redis/go-redis/v9 v9.3.1
+	github.com/robfig/cron/v3 v3.0.1
 	github.com/shirou/gopsutil v3.21.11+incompatible
 	github.com/sony/sonyflake v1.2.0
 	github.com/spf13/cobra v1.8.0
@@ -32,15 +37,18 @@ require (
 	github.com/thoas/go-funk v0.9.3
 	go.uber.org/fx v1.22.0
 	go.uber.org/zap v1.26.0
-	golang.org/x/crypto v0.18.0
-	golang.org/x/sync v0.6.0
+	golang.org/x/crypto v0.25.0
+	golang.org/x/oauth2 v0.20.0
+	golang.org/x/sync v0.7.0
 	golang.org/x/time v0.0.0-20191024005414-555d28b269f0
+	google.golang.org/grpc v1.65.0
 	gorm.io/driver/mysql v1.5.6
 	gorm.io/driver/postgres v1.5.7
 	gorm.io/gorm v1.25.10
 )
 
 require (
+	github.com/Azure/go-ntlmssp v0.0.0-20221128193559-754e69321358 // indirect
 	github.com/BurntSushi/toml v1.3.2 // indirect
 	github.com/RoaringBitmap/roaring v1.9.3 // indirect
 	github.com/andybalholm/brotli v1.0.4 // indirect
@@ -67,7 +75,7 @@ require (
 	github.com/bodgit/windows v1.0.0 // indirect
 	github.com/bytedance/sonic v1.10.2 // indirect
 	github.com/casbin/govaluate v1.1.0 // indirect
-	github.com/cespare/xxhash/v2 v2.2.0 // indirect
+	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/chenzhuoyu/base64x v0.0.0-20230717121745-296ad89f973d // indirect
 	github.com/chenzhuoyu/iasm v0.9.0 // indirect
 	github.com/connesc/cipherio v0.2.1 // indirect
@@ -78,6 +86,7 @@ require (
 	github.com/gin-contrib/sse v0.1.0 // indirect
 	github.com/glebarez/go-sqlite v1.20.3 // indirect
 	github.com/glebarez/sqlite v1.7.0 // indirect
+	github.com/go-asn1-ber/asn1-ber v1.5.5 // indirect
 	github.com/go-ole/go-ole v1.2.6 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
@@ -86,10 +95,9 @@ require (
 	github.com/golang-sql/sqlexp v0.1.0 // indirect
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0 // indirect
 	github.com/golang/geo v0.0.0-20210211234256-740aa86cb551 // indirect
-	github.com/golang/protobuf v1.5.3 // indirect
+	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
-	github.com/google/go-cmp v0.6.0 // indirect
-	github.com/google/uuid v1.5.0 // indirect
+	github.com/google/uuid v1.6.0 // indirect
 	github.com/hashicorp/errwrap v1.0.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
@@ -115,7 +123,9 @@ require (
 	github.com/pelletier/go-toml v1.9.5 // indirect
 	github.com/pelletier/go-toml/v2 v2.1.0 // indirect
 	github.com/pierrec/lz4/v4 v4.1.15 // indirect
+	github.com/pquerna/cachecontrol v0.2.0 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230126093431-47fa9a501578 // indirect
+	github.com/sirupsen/logrus v1.9.3 // indirect
 	github.com/spf13/afero v1.8.2 // indirect
 	github.com/spf13/cast v1.5.1 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
@@ -134,12 +144,16 @@ require (
 	go4.org v0.0.0-20200411211856-f5505b9728dd // indirect
 	golang.org/x/arch v0.3.0 // indirect
 	golang.org/x/image v0.13.0 // indirect
-	golang.org/x/net v0.20.0 // indirect
-	golang.org/x/sys v0.20.0 // indirect
-	golang.org/x/text v0.14.0 // indirect
-	google.golang.org/protobuf v1.31.0 // indirect
+	golang.org/x/net v0.27.0 // indirect
+	golang.org/x/sys v0.22.0 // indirect
+	golang.org/x/text v0.16.0 // indirect
+	google.golang.org/genproto v0.0.0-20220519153652-3a47de7e79bd // indirect
+	google.golang.org/protobuf v1.34.2 // indirect
+	gopkg.in/asn1-ber.v1 v1.0.0-20181015200546-f715ec2f112d // indirect
 	gopkg.in/ini.v1 v1.66.4 // indirect
+	gopkg.in/ldap.v2 v2.5.1 // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0 // indirect
+	gopkg.in/square/go-jose.v2 v2.6.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	gorm.io/driver/sqlserver v1.5.3 // indirect

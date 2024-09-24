@@ -1,0 +1,3 @@
+2024-09-22 18:29:02	ERROR	jobs/sync_ldap_user.go:39	获取 connectors 列表失败: failed to exit idle mode: dns resolver: missing address
+2024-09-22 18:35:18	ERROR	jobs/sync_ldap_user.go:39	获取 connectors 列表失败: failed to exit idle mode: dns resolver: missing address
+2024-09-22 18:45:49	ERROR	jobs/sync_ldap_user.go:39	invalid CA crt file: /etc/dex/client.crt

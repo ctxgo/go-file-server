@@ -97,4 +97,4 @@ INSERT INTO `sys_menu_api_rule` VALUES (46,156);
 INSERT INTO `sys_menu_api_rule` VALUES (226,157);
 INSERT INTO `sys_menu_api_rule` VALUES (561,160);
 INSERT INTO `sys_role` VALUES (1,'系统管理员','2','admin',1,'','',1,'1',NULL,1,1,'2021-05-13 19:56:37.913','2024-07-20 20:06:01.541',NULL);
-INSERT INTO `sys_user` VALUES (1,'admin','$2a$10$CrXkjMOGs/n/1gP1LGjwQ.oQ1Uw6A5mpwNu9UR6AxgrWlvzZd1uWC','admin','15111111111',1,'','2','test@test.test',1,1,'','2',1,1,'2021-05-13 19:56:37.914','2024-08-21 17:16:36.631',NULL);
+INSERT INTO `sys_user` VALUES (1,'admin','$2a$10$CrXkjMOGs/n/1gP1LGjwQ.oQ1Uw6A5mpwNu9UR6AxgrWlvzZd1uWC','admin','15111111111',1,'','2','test@test.test',1,1,'','2','',1,1,'2021-05-13 19:56:37.914','2024-08-21 17:16:36.631',NULL);

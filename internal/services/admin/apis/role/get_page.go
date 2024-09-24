@@ -69,7 +69,7 @@ func (api *RoleApi) makeQuery(getPageReq GetPageReq) []base.DbScope {
 		querys = append(querys, repository.WithRoleName(getPageReq.RoleName))
 	}
 	if getPageReq.Status != "" {
-		querys = append(querys, repository.WithStatus(getPageReq.Status))
+		querys = append(querys, repository.WithUserStatus(getPageReq.Status))
 	}
 	if getPageReq.RoleKey != "" {
 		querys = append(querys, repository.WithUsername(getPageReq.RoleKey))

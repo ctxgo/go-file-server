@@ -3,6 +3,7 @@ package init
 import (
 	"go-file-server/internal/common/repository"
 	"go-file-server/internal/common/types"
+	"go-file-server/internal/cronjob"
 	"go-file-server/internal/services/admin/apis/fs"
 	"go-file-server/pkgs/cache"
 	"go-file-server/pkgs/casbin"
@@ -41,6 +42,9 @@ func Initializer() *types.SvcCtx {
 	if err != nil {
 		zlog.SugLog.Fatal(err)
 	}
+
+	//定时任务
+	cronjob.InitJobs(db)
 
 	// 初始化验证码组件
 	initCaptcha(cache)

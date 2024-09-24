@@ -149,20 +149,20 @@ ingress:
   annotations:
     nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
   hosts:
-    - host: example.com
+    - host: file.example.com
       service: backend
       backendPort: 9090
       paths:
         - path: /api
           pathType: Prefix
-    - host: example.com
+    - host: file.example.com
       service: frontend
       backendPort: 80
       paths:
         - path: /
           pathType: Prefix
   tls:
-    - secretName: example.com
+    - secretName: file.example.com
 
 
 # ingressRoute:

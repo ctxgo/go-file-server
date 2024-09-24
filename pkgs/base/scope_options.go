@@ -13,6 +13,12 @@ func WithQuery(query string, args ...interface{}) DbScope {
 	}
 }
 
+func WithModel(v any) DbScope {
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Model(v)
+	}
+}
+
 func WithSelect(query string, args ...interface{}) DbScope {
 	return func(db *gorm.DB) *gorm.DB {
 		return db.Select(query, args...)

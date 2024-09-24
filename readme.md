@@ -9,6 +9,7 @@
 ## ✨ 特性
 - Casbin的 RBAC 访问控制模型
 - JWT 认证
+- dex ldap 鉴权
 - GORM 的数据库存储
 - time/rate 令牌桶限速
 - bleve 文件索引
@@ -106,13 +107,26 @@ helm install mysql bitnami/mysql --version 9.5.1 --values mysql-9.5.1-values.yam
 helm install redis bitnami/redis --version 17.15.4 --values redis-17.15.4-values.yaml
 ```
 
+#### 部署dex
+> 如果启用ldap认证，需要部署该组件，否则请跳过此步骤
+
+```shell
+# 添加 dex helm 仓库
+helm repo add dex https://charts.dexidp.io
+
+# 安装dex(注意修改dex-0.19.1-values.yaml，按需配置)
+helm install dex dex/dex --version 0.19.1 --values dex-0.19.1-values.yaml
+
+```
+
+
 #### 部署app
 >[点击前往app helm仓库](https://github.com/ctxgo/helm-charts/tree/master/go-file-server)
 ```shell
 # 添加app helm仓库
 helm repo add go-file-server https://ctxgo.github.io/helm-charts/
 
-# 如果修改了上述中间values配置, 对应的配置文件也需要修改
+# 如果修改了上述中间values配置, config.yaml也需要对应修改
 # 创建configMap
 kubectl create configmap go-file-server --from-file=config.yaml=config.yaml
 

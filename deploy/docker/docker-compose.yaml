@@ -25,16 +25,6 @@ services:
     depends_on:
       - go-file-server
 
-  redis:
-    image: redis:7.2.5-alpine3.20
-    container_name: redis
-    ports:
-    - 6379:6379
-    volumes:
-    - ./redis/redis.conf:/etc/redis/redis.conf:r
-    - ./redis/data:/data
-    - /etc/localtime:/etc/localtime
-
   mysql:
     container_name: mysql
     image: mysql:8.2
@@ -48,3 +38,24 @@ services:
       - './mysql/my.cnf:/etc/mysql/conf.d/my.cnf'
 
 
+  redis:
+    image: redis:7.2.5-alpine3.20
+    container_name: redis
+    ports:
+    - 6379:6379
+    volumes:
+    - ./redis/redis.conf:/etc/redis/redis.conf:r
+    - ./redis/data:/data
+    - /etc/localtime:/etc/localtime
+
+
+  dex:
+    image: dexidp/dex:v2.41.1
+    container_name: dex
+    environment:
+      DEX_API_CONNECTORS_CRUD: "true"
+    ports:
+    - 5556:5556
+    - 5557:5557
+    volumes:
+      - ./dex/dex.yaml:/etc/dex/config.docker.yaml

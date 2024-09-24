@@ -31,3 +31,7 @@ func FormatBytes(bytes uint64) string {
 	roundedValue := int(math.Round(value))
 	return fmt.Sprintf("%d%s", roundedValue, units[exponent])
 }
+
+func GetIntPointer(n int) *int {
+	return &n
+}
