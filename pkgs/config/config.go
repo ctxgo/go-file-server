@@ -18,6 +18,7 @@ var (
 	JwtCfg         = new(Jwt)
 	CacheCfg       = new(Cache)
 	OAuthCfg       = new(OAuth)
+	FptCfg         = new(Ftp)
 )
 
 func init() {
@@ -47,6 +48,7 @@ func getSettings() *Config {
 		Database:    DatabaseCfg,
 		Cache:       CacheCfg,
 		OAuth:       OAuthCfg,
+		Ftp:         FptCfg,
 	}
 
 }

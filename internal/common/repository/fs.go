@@ -1,13 +1,15 @@
 package repository
 
 import (
-	"errors"
 	"go-file-server/pkgs/pathtool"
+	"io/fs"
 	"os"
+	"path/filepath"
 	"sync"
 
 	"github.com/blevesearch/bleve/v2"
 	"github.com/blevesearch/bleve/v2/search/query"
+	"github.com/pkg/errors"
 )
 
 type FileDocument struct {
@@ -53,7 +55,7 @@ func WithPrefixPath(path string) FsScope {
 	}
 }
 
-// WithPathPrefix 查询特定路径前缀
+// WithParentPathPrefix 查询上级路径路径前缀
 func WithParentPathPrefix(path string) FsScope {
 	return func(sr *bleve.SearchRequest) {
 		q := bleve.NewPrefixQuery(path)
@@ -198,13 +200,36 @@ func (r *FsRepository) FindOne(scopes ...FsScope) (FileDocument, error) {
 	return FileDocument{}, ErrDocumentNotFound
 }
 
-func (r *FsRepository) Delete(path string) error {
+func (r *FsRepository) RemoveAll(path string) error {
 	r.Lock()
 	defer r.Unlock()
 	err := os.RemoveAll(path)
 	if err != nil {
 		return err
 	}
+	doc, _, err := r.find(WithPrefixPath(path))
+	if err != nil {
+		return err
+	}
+	for _, f := range doc {
+		err = r.Indexer.DelResource(f.Path)
+		if err != nil {
+			return errors.Errorf(
+				"removeAll index faild, path: %s , Subpath: %s , err: %v", path, f.Path, err)
+		}
+	}
+	return nil
+}
+
+func (r *FsRepository) Remove(path string) error {
+	r.Lock()
+	defer r.Unlock()
+
+	err := os.Remove(path)
+	if err != nil {
+		return err
+	}
+
 	return r.Indexer.DelResource(path)
 }
 
@@ -233,14 +258,68 @@ func (r *FsRepository) Rename(src, des string) error {
 
 }
 
-func (r *FsRepository) CreateDir(path string) error {
+func (r *FsRepository) Mkdir(path string, perm fs.FileMode) error {
 	r.Lock()
 	defer r.Unlock()
-	err := os.MkdirAll(path, os.ModePerm)
+	err := os.Mkdir(path, os.ModePerm)
 	if err != nil {
 		return err
 	}
 	return r.Indexer.AddResource(path)
+}
+
+func findFirstNonExistentDir(path string) string {
+	dir := filepath.Dir(path)
+	if dir == path {
+		return path
+	}
+
+	if _, err := os.Stat(dir); err == nil {
+		return path
+	}
+
+	return findFirstNonExistentDir(dir)
+}
+
+func (r *FsRepository) MkdirAll(path string, perm fs.FileMode) error {
+	r.Lock()
+	defer r.Unlock()
+	topPath := findFirstNonExistentDir(path)
+	err := os.MkdirAll(path, os.ModePerm)
+	if err != nil {
+		return err
+	}
+	return r.Indexer.AddResource(topPath)
+}
+
+func (r *FsRepository) Create(path string) (*os.File, error) {
+	r.Lock()
+	defer r.Unlock()
+	f, err := os.Create(path)
+	if err != nil {
+		return nil, err
+	}
+	return f, r.Indexer.AddResource(path)
+}
+
+func (r *FsRepository) OpenFile(path string, flag int, perm os.FileMode) (f *os.File, err error) {
+	r.Lock()
+	defer r.Unlock()
+	_, err = os.Stat(path)
+	if err != nil {
+		if !os.IsNotExist(err) {
+			return nil, err
+		}
+		defer func() {
+			if err != nil {
+				return
+			}
+			err = r.Indexer.AddResource(path)
+		}()
+	}
+
+	f, err = os.OpenFile(path, flag, perm)
+	return
 }
 
 func (r *FsRepository) AddResource(path string) error {

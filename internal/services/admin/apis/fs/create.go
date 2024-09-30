@@ -4,6 +4,9 @@ import (
 	"go-file-server/internal/common/core"
 	"go-file-server/internal/common/global"
 	"go-file-server/internal/services/admin/apis/fs/utils"
+	"io"
+	"os"
+	"path/filepath"
 
 	"github.com/gin-gonic/gin"
 )
@@ -48,7 +51,7 @@ func (api *FsApi) createDir(c *gin.Context) {
 		return
 	}
 
-	err = api.fsRepo.CreateDir(realPath)
+	err = api.fsRepo.MkdirAll(realPath, os.ModePerm)
 	if err != nil {
 		if ok, err := utils.ParsePathErr(err); ok {
 			core.ErrBizRep().SetMsg(err.Error()).SendGin(c)
@@ -67,26 +70,54 @@ func (api *FsApi) upLoad(c *gin.Context) {
 		c.Error(err)
 		return
 	}
-	filepart, err := c.FormFile("file")
-	if err != nil {
-		core.ErrRep().SetHttpCode(global.BadRequestError).SendGin(c)
-		return
-	}
-
-	filePath, err := utils.GetRealPath(req.Path, filepart.Filename)
-	if err != nil {
-		core.ErrRep().SetHttpCode(global.BadRequestError).SendGin(c)
-	}
-	err = c.SaveUploadedFile(filepart, filePath)
-	if err != nil {
-		core.ErrRep().SendGin(c)
-		return
-	}
-	err = api.fsRepo.AddResource(filePath)
+	err = api.saveUploadedFile(c, req)
 	if err != nil {
 		c.Error(err)
 		return
 	}
+
 	core.OKRep(nil).SendGin(c)
+
+}
+
+func (api *FsApi) saveUploadedFile(c *gin.Context, req CreateReq) error {
+
+	filepart, err := c.FormFile("file")
+	if err != nil {
+		return core.NewApiErr(err).SetHttpCode(global.BadRequestError)
+	}
+
+	dst, err := utils.GetRealPath(req.Path, filepart.Filename)
+	if err != nil {
+		return core.NewApiErr(err).SetHttpCode(global.BadRequestError)
+	}
+
+	src, err := filepart.Open()
+	if err != nil {
+		return err
+	}
+	defer src.Close()
+
+	if err = os.MkdirAll(filepath.Dir(dst), 0750); err != nil {
+		return err
+	}
+
+	out, err := os.Create(dst)
+	if err != nil {
+		return err
+	}
+	defer out.Close()
+	claims := core.ExtractClaims(c)
+	raleLimiter, err := api.getLimiter(claims.UserId, claims.RoleKey)
+	if err != nil {
+		return err
+	}
+	reader := raleLimiter.LimitReader(c.Request.Context(), src)
+	_, err = io.Copy(out, reader)
+	if err != nil {
+		return err
+	}
+
+	return api.fsRepo.AddResource(dst)
 
 }

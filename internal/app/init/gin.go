@@ -12,7 +12,6 @@ import (
 )
 
 func InitGin() *gin.Engine {
-
 	//设置运行模式
 	if !zlog.Log.Core().Enabled(zap.DebugLevel) {
 		gin.SetMode(gin.ReleaseMode)

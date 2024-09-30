@@ -65,22 +65,30 @@ func (u *Authenticator) AuthHandler(c *gin.Context) {
 			RefreshToken: token,
 			Expire:       expire},
 	).SendGin(c)
-
-}
-
-// Verify 校验验证码
-func captchaVerify(id, code string, clear bool) bool {
-	return base64Captcha.DefaultMemStore.Verify(id, code, clear)
 }
 
 func (u *Authenticator) verify(loginVals LoginReq) (*models.SysUser, error) {
 
-	if !captchaVerify(loginVals.UUID, loginVals.Code, true) {
+	if !VerifyCaptcha(loginVals.UUID, loginVals.Code, true) {
 
 		return nil, errors.Errorf(global.ErrInvalidVerificationode)
 
 	}
-	user, err := u.userRepo.FindOne(
+	return VerifyUser(u.userRepo, loginVals)
+}
+
+func (u *Authenticator) createToken(user *models.SysUser) (string, string, error) {
+	return CreateToken(u.roleRepo, user)
+}
+
+// Verify 校验验证码
+func VerifyCaptcha(id, code string, clear bool) bool {
+	return base64Captcha.DefaultMemStore.Verify(id, code, clear)
+}
+
+func VerifyUser(userRepo *repository.UserRepository, loginVals LoginReq) (*models.SysUser, error) {
+
+	user, err := userRepo.FindOne(
 		repository.WithUsername(loginVals.Username),
 		repository.WithUserStatus("2"))
 	if err != nil {
@@ -98,9 +106,8 @@ func (u *Authenticator) verify(loginVals LoginReq) (*models.SysUser, error) {
 }
 
 // CreateToken 生成一个token
-func (u *Authenticator) createToken(user *models.SysUser) (string, string, error) {
-
-	role, err := u.roleRepo.FindOne(repository.WithRoleId(user.RoleId))
+func CreateToken(roleRepo *repository.RoleRepository, user *models.SysUser) (string, string, error) {
+	role, err := roleRepo.FindOne(repository.WithRoleId(user.RoleId))
 	if err != nil {
 		zlog.SugLog.Errorf("get role error, %s", err.Error())
 		if err != gorm.ErrRecordNotFound {

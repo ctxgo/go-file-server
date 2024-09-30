@@ -1,12 +1,17 @@
 package fs
 
 import (
+	"fmt"
 	"go-file-server/internal/common/core"
 	"go-file-server/internal/common/repository"
 	"go-file-server/internal/services/admin/apis/fs/utils"
+	"go-file-server/internal/services/admin/apis/role"
 	"go-file-server/pkgs/cache"
 	"go-file-server/pkgs/pathtool"
+	"go-file-server/pkgs/utils/limiter"
 	"go-file-server/pkgs/zlog"
+	"os"
+	"strconv"
 	"sync"
 	"time"
 
@@ -40,7 +45,7 @@ func NewFsApi(
 		fsRepo:         fsRepo,
 		casbinEnforcer: casbinEnforcer,
 		cache:          cache,
-		limiterManager: *utils.NewLimiterManager(20*time.Minute, 20*time.Minute),
+		limiterManager: *utils.NewLimiterManager(30*time.Minute, 30*time.Minute),
 		publishers:     utils.NewPublishers[utils.Message](),
 		idManager:      *utils.NewIdManager(3*time.Hour, 3*time.Hour),
 	}
@@ -63,7 +68,51 @@ func (api *FsApi) execRename(realPath, destination string) error {
 	return nil
 }
 
+func (api *FsApi) getLimiter(uid int, roleKey string) (*limiter.Limiter, error) {
+
+	raleLimiteBytes, err := GetRaleLimiteBytes(roleKey, api.cache, api.roleRepo)
+	if err != nil {
+		return nil, err
+	}
+	key := fmt.Sprintf("%d-%s", uid, roleKey)
+	raleLimiter := api.limiterManager.GetLimiter(key, raleLimiteBytes)
+	return raleLimiter, nil
+
+}
+
 func (api *FsApi) ensureTempDir(roleKey string) (string, error) {
+
+	tempPath, err := EnsureTempDir(roleKey)
+	if err != nil {
+		return "", err
+	}
+	return tempPath, api.fsRepo.MkdirAll(tempPath, os.ModePerm)
+}
+
+func GetRaleLimiteBytes(roleKey string, ch cache.AdapterCache,
+	roleRepo *repository.RoleRepository) (uint64, error) {
+
+	key := fmt.Sprintf("%s-%s", role.RateLimitKey, roleKey)
+	rateLimitStr, err := ch.Get(key)
+	if err == nil {
+		return strconv.ParseUint(rateLimitStr, 10, 64)
+	}
+	if !cache.IsKeyNotFoundError(err) {
+		return 0, err
+	}
+	data, err := roleRepo.FindOne(repository.WithRoleKey(roleKey))
+	if err != nil {
+		return 0, err
+	}
+	err = ch.Set(
+		fmt.Sprintf("%s-%s", roleKey, role.RateLimitKey),
+		data.RateLimit,
+		0,
+	)
+	return data.RateLimit, err
+}
+
+func EnsureTempDir(roleKey string) (string, error) {
 	tempPath, err := utils.GetRealPath(".tmp", roleKey)
 	if err != nil {
 		return "", core.NewApiBizErr(err).SetMsg(err.Error())
@@ -80,5 +129,5 @@ func (api *FsApi) ensureTempDir(roleKey string) (string, error) {
 	if isExist {
 		return tempPath, nil
 	}
-	return tempPath, api.fsRepo.CreateDir(tempPath)
+	return tempPath, nil
 }

@@ -8,6 +8,7 @@ type Config struct {
 	Database    *Database    `mapstructure:"database"`
 	Cache       *Cache       `mapstructure:"cache"`
 	OAuth       *OAuth       `mapstructure:"oauth"`
+	Ftp         *Ftp         `mapstructure:"ftp"`
 }
 
 type Application struct {
@@ -59,4 +60,10 @@ type OAuth struct {
 	Grpc         OAuthGrpc `mapstructure:"grpc"`
 }
 
-//mapstructure:"webhook" validate:"required"
+type Ftp struct {
+	Enable           bool   `mapstructure:"enable"`
+	Addr             string `mapstructure:"addr"`
+	PublicHost       string `mapstructure:"publicHost"`
+	PassivePortStart int    `mapstructure:"passivePortStart"`
+	PassivePortEnd   int    `mapstructure:"passivePortEnd"`
+}

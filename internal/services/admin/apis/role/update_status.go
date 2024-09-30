@@ -12,6 +12,7 @@ import (
 type UpdateStatusRep struct {
 	RoleId int `json:"roleId" comment:"角色编码"` // 角色编码
 }
+
 type UpdateStatusReq struct {
 	RoleId int    `form:"roleId" binding:"required" comment:"角色编码"` // 角色编码
 	Status string `form:"status" binding:"required" comment:"状态"`   // 状态
@@ -29,11 +30,10 @@ func (api *RoleApi) UpdateStatus(c *gin.Context) {
 		c.Error(err)
 		return
 	}
-
 	core.OKRep(nil).SendGin(c)
 }
-func (api *RoleApi) updateStatus(updateReq UpdateStatusReq) error {
 
+func (api *RoleApi) updateStatus(updateReq UpdateStatusReq) error {
 	role, err := api.roleRepo.FindOne(
 		repository.WithRoleId(updateReq.RoleId),
 	)

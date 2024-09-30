@@ -4,6 +4,7 @@ import (
 	"context"
 	"go-file-server/internal/common/types"
 	"go-file-server/internal/services/normal/routers"
+	"go-file-server/pkgs/cache"
 	"go-file-server/pkgs/zlog"
 
 	"github.com/gin-gonic/gin"
@@ -24,6 +25,9 @@ func RegisterRouter(svcCtx *types.SvcCtx) {
 		),
 		fx.Provide(
 			func() gin.IRouter { return SetupGin(svcCtx) },
+		),
+		fx.Provide(
+			func() cache.AdapterCache { return svcCtx.Cache },
 		),
 		routers.Routers,
 		fx.WithLogger(func() fxevent.Logger {

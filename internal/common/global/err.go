@@ -2,6 +2,7 @@ package global
 
 const (
 	ErrTokenExpired     = "token is expired"
+	ErrTokenRevoked     = "token has been revoked"
 	ErrTokenNotValidYet = "token not active yet"
 	ErrTokenMalformed   = "that's not even a token"
 	ErrTokenInvalid     = "couldn't handle this token"

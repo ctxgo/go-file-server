@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/blevesearch/bleve/v2"
 	"github.com/blevesearch/bleve/v2/mapping"
@@ -36,7 +37,7 @@ const (
 
 type FileIndexer struct {
 	storageType    storageType
-	IndexPAth      string
+	IndexPath      string
 	Index          bleve.Index
 	WatchedRootDir string
 	Logger         *zap.SugaredLogger
@@ -51,6 +52,7 @@ type FileDocument struct {
 	ParentPath string
 	IsDir      bool
 }
+
 type Opt func(*FileIndexer)
 
 func WithStorageType(t storageType) Opt {
@@ -70,6 +72,13 @@ func WithLog(log *zap.SugaredLogger) Opt {
 		fi.Logger = log
 	}
 }
+
+func WithIndexPath(s string) Opt {
+	return func(fi *FileIndexer) {
+		fi.IndexPath = s
+	}
+}
+
 func WithUpdateCallback(up UpdateCallback) Opt {
 
 	return func(fi *FileIndexer) {
@@ -94,6 +103,15 @@ func NewFileIndexer(path string, opts ...Opt) (*FileIndexer, error) {
 		}
 		fileIndexer.Logger = logger.Sugar()
 	}
+	if fileIndexer.IndexPath == "" {
+		homeDir, err := os.UserHomeDir()
+		if err != nil {
+			return nil, err
+		}
+		fileIndexer.IndexPath = homeDir
+	}
+	fileIndexer.IndexPath = filepath.Join(fileIndexer.IndexPath, ".bleve.index")
+
 	//初始化索引文档
 	if err := fileIndexer.IndexInit(); err != nil {
 		return nil, errors.Wrap(err, "索引初始化失败")
@@ -123,7 +141,6 @@ func (fi *FileIndexer) IndexInit() error {
 		return err
 	}
 	fi.Index = index
-
 	//添加条目
 	if err := fi.addResource(fi.WatchedRootDir); err != nil {
 		return err
@@ -151,17 +168,26 @@ func (fi *FileIndexer) createIndex() (bleve.Index, error) {
 		return bleve.NewMemOnly(indexMapping)
 
 	}
-	fi.IndexPAth = filepath.Join(fi.WatchedRootDir, ".bleve.index")
 
-	//如果索引文件存在则删除索引文件
-	exist, err := NewFiletool(fi.IndexPAth).IsExist()
+	//如果索引文件则备份
+	exist, err := NewFiletool(fi.IndexPath).IsExist()
 	if err != nil {
 		return nil, err
 	}
 	if exist {
-		os.RemoveAll(fi.IndexPAth)
+		indexPathBakDir := filepath.Join(
+			os.TempDir(), "index_bak_dir",
+		)
+		err := os.MkdirAll(indexPathBakDir, os.ModePerm)
+		if err != nil {
+			return nil, err
+		}
+		indexPath := filepath.Join(indexPathBakDir,
+			time.Now().Format("bleve.index.2006.01.02.15.04.05.000"))
+		os.Rename(fi.IndexPath, indexPath)
 	}
-	return bleve.New(fi.IndexPAth, indexMapping)
+
+	return bleve.New(fi.IndexPath, indexMapping)
 }
 
 func (fi *FileIndexer) Search(req *bleve.SearchRequest) (*bleve.SearchResult, error) {
@@ -171,7 +197,7 @@ func (fi *FileIndexer) Search(req *bleve.SearchRequest) (*bleve.SearchResult, er
 }
 
 func (fi *FileIndexer) IsSkippePath(path string) bool {
-	return fi.storageType == UseDisk && strings.HasPrefix(path, fi.IndexPAth)
+	return fi.storageType == UseDisk && strings.HasPrefix(path, fi.IndexPath)
 }
 
 func (fi *FileIndexer) DelResource(path string) error {

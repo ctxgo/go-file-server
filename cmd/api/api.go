@@ -19,8 +19,8 @@ func NewApiCommand() *cobra.Command {
 		PreRun: func(cmd *cobra.Command, args []string) {
 			setup(cmd)
 		},
-		Run: func(cmd *cobra.Command, args []string) {
-			app.Start()
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return app.Start()
 		},
 	}
 	rootCmd.Flags().StringP("config", "c", "./config.yaml", "use -c set Your congfile")

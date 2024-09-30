@@ -9,7 +9,7 @@ import (
 
 type SysUser struct {
 	UserId   int    `gorm:"primaryKey;autoIncrement;comment:编码"  json:"userId"`
-	Username string `json:"username" gorm:"size:64;comment:用户名"`
+	Username string `json:"username" gorm:"size:64;unique;not null;comment:用户名"`
 	Password string `json:"-" gorm:"size:128;comment:密码"`
 	NickName string `json:"nickName" gorm:"size:128;comment:昵称"`
 	Phone    string `json:"phone" gorm:"size:11;comment:手机号"`

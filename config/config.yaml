@@ -62,3 +62,10 @@ oauth:
     - "email"
     - "offline_access"
     - "groups"
+
+ftp:
+  enable: false
+  addr: :32121
+  passivePortStart: 32122
+  passivePortEnd: 32125
+#  publicHost: yourhost

@@ -3,6 +3,7 @@ package user
 import (
 	"fmt"
 	"go-file-server/internal/common/core"
+	"go-file-server/internal/common/middlewares"
 	"go-file-server/internal/common/repository"
 	"go-file-server/internal/services/admin/models"
 
@@ -49,6 +50,15 @@ func (api *UserAPI) updatePwd(req UpdatePwdReq) error {
 		err = fmt.Errorf("CompareHashAndPassword error, %w", err)
 		return core.NewApiBizErr(err).SetMsg("密码错误")
 	}
+	if user.Password == req.NewPassword {
+		return nil
+	}
+
+	err = middlewares.UpdateLastTokenReset(api.cache, user.UserId)
+	if err != nil {
+		return err
+	}
+
 	err = api.userRepo.Update(func(su *models.SysUser) {
 		su.Password = req.NewPassword
 	}, repository.WithUserId(req.UserId))

@@ -4,6 +4,7 @@ import (
 	"go-file-server/internal/common/repository"
 	"go-file-server/internal/common/types"
 	"go-file-server/internal/cronjob"
+	"go-file-server/internal/ftpserver"
 	"go-file-server/internal/services/admin/apis/fs"
 	"go-file-server/pkgs/cache"
 	"go-file-server/pkgs/casbin"
@@ -167,4 +168,16 @@ func initBaseDir(realPath string) {
 	if !isdir {
 		zlog.SugLog.Fatal("工作目录不是标准的目录")
 	}
+}
+
+func InitFtpServer(svcCtx *types.SvcCtx) (*ftpserver.Server, error) {
+	ftpCfg := config.FptCfg
+
+	return ftpserver.NewServer(
+		svcCtx,
+		ftpserver.WithAddr(ftpCfg.Addr),
+
+		ftpserver.WithPassivePortRange(ftpCfg.PassivePortStart, ftpCfg.PassivePortEnd),
+		ftpserver.WithLogger(zlog.SugLog),
+	)
 }

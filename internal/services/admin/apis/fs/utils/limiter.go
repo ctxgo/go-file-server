@@ -1,8 +1,8 @@
 package utils
 
 import (
-	"go-file-server/pkgs/utils/limiter"
 	"fmt"
+	"go-file-server/pkgs/utils/limiter"
 	"time"
 
 	"github.com/patrickmn/go-cache"
@@ -18,8 +18,8 @@ func NewLimiterManager(defaultExpiration, cleanupInterval time.Duration) *Limite
 	}
 }
 
-func (m *LimiterManager) GetLimiter(roleKey string, rateLimitBytes uint64) *limiter.Limiter {
-	key := fmt.Sprintf("%s-%d", roleKey, rateLimitBytes)
+func (m *LimiterManager) GetLimiter(key string, rateLimitBytes uint64) *limiter.Limiter {
+	key = fmt.Sprintf("%s-%d", key, rateLimitBytes)
 	if lim, found := m.limiters.Get(key); found {
 		return lim.(*limiter.Limiter)
 	}
@@ -29,7 +29,7 @@ func (m *LimiterManager) GetLimiter(roleKey string, rateLimitBytes uint64) *limi
 		return newLimiter
 	}
 
-	lim, _ := m.limiters.Get(roleKey)
+	lim, _ := m.limiters.Get(key)
 	return lim.(*limiter.Limiter)
 }
 

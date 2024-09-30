@@ -7,13 +7,17 @@ services:
     environment:
       - TZ=Asia/Shanghai
     ports:
+      # http端口
       - 9090:9090
+      # ftp端口
+      #- 32121:32121
+      # ftp被动端口
+      #- 32122-32125:32122-32125
     volumes:
       - ./config/config.yaml:/config.yaml
       - ./basedir:/basedir
     depends_on:
       - mysql
-      - redis
 
   go-file-server-ui:
     image: ctxgo/go-file-server-ui
@@ -37,25 +41,23 @@ services:
       - './mysql/data:/var/lib/mysql'
       - './mysql/my.cnf:/etc/mysql/conf.d/my.cnf'
 
+  # redis:
+  #   image: redis:7.2.5-alpine3.20
+  #   container_name: redis
+  #   ports:
+  #   - 6379:6379
+  #   volumes:
+  #   - ./redis/redis.conf:/etc/redis/redis.conf:r
+  #   - ./redis/data:/data
+  #   - /etc/localtime:/etc/localtime
 
-  redis:
-    image: redis:7.2.5-alpine3.20
-    container_name: redis
-    ports:
-    - 6379:6379
-    volumes:
-    - ./redis/redis.conf:/etc/redis/redis.conf:r
-    - ./redis/data:/data
-    - /etc/localtime:/etc/localtime
-
-
-  dex:
-    image: dexidp/dex:v2.41.1
-    container_name: dex
-    environment:
-      DEX_API_CONNECTORS_CRUD: "true"
-    ports:
-    - 5556:5556
-    - 5557:5557
-    volumes:
-      - ./dex/dex.yaml:/etc/dex/config.docker.yaml
+  # dex:
+  #   image: dexidp/dex:v2.41.1
+  #   container_name: dex
+  #   environment:
+  #     DEX_API_CONNECTORS_CRUD: "true"
+  #   ports:
+  #   - 5556:5556
+  #   - 5557:5557
+  #   volumes:
+  #     - ./dex/dex.yaml:/etc/dex/config.docker.yaml

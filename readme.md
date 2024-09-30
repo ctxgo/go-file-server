@@ -13,6 +13,7 @@
 - GORM 的数据库存储
 - time/rate 令牌桶限速
 - bleve 文件索引
+- ftpserverlib ftp服务端库
 
 ## 🎁 内置
 1. 文件管理：文件的增删改查
@@ -22,6 +23,7 @@
 4. 操作日志：系统正常操作日志记录和查询；系统异常信息日志记录和查询。
 5. 登录日志：系统登录日志记录查询包含登录异常。
 6. 服务监控：查看一些服务器的基本信息。
+7. ftp服务：兼容ftp协议，支持从lftp等客户端工具进行文件的增删改查
 
 
 ## 📦 本地开发
@@ -140,10 +142,13 @@ helm install go-file-server go-file-server/go-file-server --version 1.0.0 --valu
 ```
 
 ## 预览
-<img width="1440" alt="go-file-server" src="https://github.com/user-attachments/assets/0b3865ea-7e92-426c-ab4f-e68427399df8">
+<img width="1440" alt="ui" src="https://github.com/user-attachments/assets/5fe2ed59-de86-40bb-9f48-e4d1a3360d4a">
 
+<img width="1440" alt="go-file-server" src="https://github.com/user-attachments/assets/0b3865ea-7e92-426c-ab4f-e68427399df8">
 
 <br>
 
 ## 🤝 特别感谢
-[go-admin](https://github.com/go-admin-team/go-admin)
+1. [go-admin](https://github.com/go-admin-team/go-admin)
+2. [ftpserverlib](https://github.com/fclairamb/ftpserverlib)
+3. [dex](https://github.com/dexidp/dex)

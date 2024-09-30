@@ -28,7 +28,13 @@ func HandlerCheckRole(c *gin.Context, casbinEnforcer *casbin.CachedEnforcer) err
 	if jwtClaims.RoleKey == "admin" {
 		return nil
 	}
-	return CasbinEnforce(casbinEnforcer, jwtClaims.RoleKey, c.Request.URL.Path, c.Request.Method)
+	err := CasbinEnforce(casbinEnforcer, jwtClaims.RoleKey, c.Request.URL.Path, c.Request.Method)
+	if err != nil {
+		return core.NewApiErr(err).
+			SetHttpCode(global.HttpSuccess).
+			SetBizCode(global.BizAccessDenied)
+	}
+	return nil
 }
 
 func CasbinEnforce(casbinEnforcer *casbin.CachedEnforcer, roleKey, path, method string) error {
@@ -39,10 +45,5 @@ func CasbinEnforce(casbinEnforcer *casbin.CachedEnforcer, roleKey, path, method 
 	if res {
 		return nil
 	}
-	err = fmt.Errorf("isTrue: %v role: %s method: %s path: %s message: %s", res, roleKey, method, path, "当前request无权限，请管理员确认！")
-
-	return core.NewApiErr(err).
-		SetHttpCode(global.HttpSuccess).
-		SetBizCode(global.BizAccessDenied)
-
+	return fmt.Errorf("isTrue: %v role: %s method: %s path: %s message: %s", res, roleKey, method, path, "当前request无权限，请管理员确认！")
 }

@@ -2,23 +2,21 @@ package fs
 
 import (
 	"encoding/json"
-	"go-file-server/internal/services/admin/apis/fs/utils"
-	"go-file-server/internal/services/admin/apis/role"
 	"go-file-server/internal/common/core"
 	"go-file-server/internal/common/global"
 	"go-file-server/internal/common/middlewares"
-	"go-file-server/internal/common/repository"
 	"go-file-server/internal/common/types"
+	"go-file-server/internal/services/admin/apis/fs/utils"
 	"go-file-server/pkgs/cache"
 	"go-file-server/pkgs/pathtool"
 	"go-file-server/pkgs/utils/limiter"
 	"go-file-server/pkgs/utils/str"
 	"go-file-server/pkgs/utils/zip"
-	"fmt"
 	"io"
+	"net/url"
 	"os"
+	"path"
 	"path/filepath"
-	"strconv"
 	"strings"
 	"time"
 
@@ -44,20 +42,28 @@ func (api *FsApi) GetDownloadUrl(c *gin.Context) {
 		c.Error(err)
 		return
 	}
-	token, err := middlewares.GetToken(c)
+
+	url, err := api.genNewUrl(c, req)
 	if err != nil {
 		c.Error(err)
 		return
 	}
+	core.OKRep(url).SendGin(c)
+}
+
+func (api *FsApi) genNewUrl(c *gin.Context, req utils.UriPath) (string, error) {
+	token, err := middlewares.GetToken(c)
+	if err != nil {
+		return "", err
+	}
 	id, err := api.makeID(req.Path, token)
 	if err != nil {
-		c.Error(err)
-		return
+		return "", err
 	}
 
 	isDIr, realPath, err := checkPath(req.Path)
 	if err != nil {
-		return
+		return "", err
 	}
 	fileName := filepath.Base(realPath)
 	if isDIr {
@@ -65,13 +71,14 @@ func (api *FsApi) GetDownloadUrl(c *gin.Context) {
 	}
 	host := utils.GetHost(c)
 	if host == "" {
-		core.ErrBizRep().
-			SetMsg("无法获取原始请求地址，请联系管理员设置转发请求头x-forwarded-host").
-			SendGin(c)
-		return
+		return "", core.NewApiBizErr(nil).SetMsg("无法获取原始请求地址")
 	}
-	url := host + filepath.Join("/api/v1/fsd", id, fileName)
-	core.OKRep(url).SendGin(c)
+	parsedURL, err := url.Parse(host)
+	if err != nil {
+		return "", core.NewApiBizErr(err).SetMsg("原始请求地址解析失败")
+	}
+	parsedURL.Path = path.Join("/api/v1/fsd", id, fileName)
+	return parsedURL.String(), nil
 }
 
 func (api *FsApi) makeID(uriPath, token string) (id string, err error) {
@@ -215,33 +222,11 @@ func checkPath(path string) (isDir bool, realPath string, err error) {
 	return
 }
 
-func (api *FsApi) getRaleLimiteBytes(roleId int) (uint64, error) {
-	rateLimitStr, err := api.cache.Get(fmt.Sprintf("%d-%s", roleId, role.RateLimitKey))
-	if err == nil {
-		return strconv.ParseUint(rateLimitStr, 10, 64)
-	}
-	if !cache.IsKeyNotFoundError(err) {
-		return 0, err
-	}
-	data, err := api.roleRepo.FindOne(repository.WithRoleId(roleId))
-	if err != nil {
-		return 0, err
-	}
-	err = api.cache.Set(
-		fmt.Sprintf("%d-%s", roleId, role.RateLimitKey),
-		data.RateLimit,
-		0,
-	)
-
-	return data.RateLimit, err
-}
-
 func (api *FsApi) send(c *gin.Context, jwtClaims *types.JwtClaims, path string) error {
-	raleLimiteBytes, err := api.getRaleLimiteBytes(jwtClaims.RoleId)
+	raleLimiter, err := api.getLimiter(jwtClaims.UserId, jwtClaims.RoleKey)
 	if err != nil {
 		return err
 	}
-	raleLimiter := api.limiterManager.GetLimiter(jwtClaims.RoleKey, raleLimiteBytes)
 	isDIr, realPath, err := checkPath(path)
 	if err != nil {
 		return err

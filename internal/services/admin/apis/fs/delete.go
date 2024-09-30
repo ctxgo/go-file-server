@@ -41,7 +41,7 @@ func (api *FsApi) execDelete(path string, roleKey string) (err error) {
 
 	// 直接删除
 	if strings.HasPrefix(srcPath, utils.GetTmpDir()) {
-		return api.fsRepo.Delete(srcPath)
+		return api.fsRepo.RemoveAll(srcPath)
 	}
 
 	tmpDir, err := api.ensureTempDir(roleKey)

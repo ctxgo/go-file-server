@@ -15,7 +15,7 @@ func RegisterFsRoutes(svc FsSvcCtx, fsApi *fs.FsApi) {
 	}
 
 	authRouter := svc.Router.Group("")
-	authRouter.Use(middlewares.JwtAuth())
+	authRouter.Use(middlewares.JwtAuth(svc.Cache))
 
 	{
 		authRouter.GET("/sse/fs/info", fsApi.GetInfo)

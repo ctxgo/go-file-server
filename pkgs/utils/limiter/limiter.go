@@ -7,9 +7,15 @@ import (
 	"golang.org/x/time/rate"
 )
 
+type ILimiter interface {
+	LimitReader(ctx context.Context, reader io.Reader, opts ...opt) io.Reader
+	LimitWriter(ctx context.Context, writer io.Writer, opts ...opt) io.Writer
+	LimitReadertWriter(ctx context.Context, readWriter io.ReadWriter, opts ...opt) io.ReadWriter
+}
+
 // Limiter 是一个带宽限制器结构体
 type Limiter struct {
-	*rate.Limiter
+	limiter *rate.Limiter
 }
 
 // NewLimiter 创建一个新的带宽限制器，
@@ -18,14 +24,14 @@ type Limiter struct {
 func NewLimiter(rateLimitBytes uint64, burstBytes uint64) *Limiter {
 	if rateLimitBytes == 0 {
 		return &Limiter{
-			Limiter: rate.NewLimiter(rate.Inf, 0),
+			limiter: rate.NewLimiter(rate.Inf, 0),
 		}
 	}
 	// 内部转换：将字节转换为千字节(KB)来减少令牌的生成频率
 	rateLimitKB := rate.Limit(rateLimitBytes / 1024)
 	burstKB := burstBytes / 1024
 	return &Limiter{
-		Limiter: rate.NewLimiter(rateLimitKB, int(burstKB)),
+		limiter: rate.NewLimiter(rateLimitKB, int(burstKB)),
 	}
 }
 
@@ -43,10 +49,17 @@ func (l *Limiter) LimitWriter(ctx context.Context, writer io.Writer, opts ...opt
 	return w
 }
 
+func (l *Limiter) LimitReadertWriter(ctx context.Context, readWriter io.ReadWriter, opts ...opt) io.ReadWriter {
+	r := l.defaultLimitReaderWriter(ctx, opts...)
+	r.reader = readWriter
+	r.writer = readWriter
+	return r
+}
+
 func (l *Limiter) defaultLimitReaderWriter(ctx context.Context, opts ...opt) *limitReaderWriter {
 	r := &limitReaderWriter{
 		ctx:       ctx,
-		limiter:   l.Limiter,
+		limiter:   l.limiter,
 		chunkSize: 8192,
 		bufioSize: 8192,
 	}

@@ -32,11 +32,47 @@ backend:
     mountPath: /basedir
 
   service:
+    # ClusterIP|NodePort|LoadBalancer
+    # type: NodePort 
     ports:
       # name不要修改，被ingress依赖
       - name: http
         containerPort: 9090
+      #  nodePort: 39090
         protocol: TCP
+      # # ftp监听端口(和程序实际配置的端口保持一致)
+      # - name: ftp-32121
+      #   containerPort: 32121
+      #   nodePort: 32121
+      #   protocol: TCP
+      # # ftp被动端口
+      # # 生产环境中不建议开通过多的被动端口，最佳实践是用 LoadBalancer
+      # - name: ftp-32122
+      #   containerPort: 32122
+      #   nodePort: 32122
+      #   protocol: TCP
+      # # ftp被动端口
+      # - name: ftp-32123
+      #   containerPort: 32123
+      #   nodePort: 32123
+      #   protocol: TCP
+      #   # ftp被动端口
+      # - name: ftp-32124
+      #   containerPort: 32124
+      #   nodePort: 32124
+      #   protocol: TCP
+      #   # ftp被动端口
+      # - name: ftp-32125
+      #   containerPort: 32125
+      #   nodePort: 32125
+      #   protocol: TCP
+    # type: LoadBalancer
+    # annotations:
+    #   lb.kubesphere.io/v1alpha1: openelb
+    #   protocol.openelb.kubesphere.io/v1alpha1: layer2
+    #   eip.openelb.kubesphere.io/v1alpha2: eip-pool
+    # #固定虚拟ip
+    # loadBalancerIP: x.x.x.x
 
   deployment:
     kind: Deployment

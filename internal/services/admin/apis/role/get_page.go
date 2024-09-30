@@ -31,7 +31,7 @@ func (api *RoleApi) GetPage(c *gin.Context) {
 		c.Error(err)
 		return
 	}
-	data, err := api.getPage(c, getPageReq)
+	data, err := api.getPage(getPageReq)
 	if err != nil {
 		c.Error(err)
 		return
@@ -40,7 +40,7 @@ func (api *RoleApi) GetPage(c *gin.Context) {
 	core.OKRep(data).SendGin(c)
 }
 
-func (api *RoleApi) getPage(c *gin.Context, getPageReq GetPageReq) (GetPageRep, error) {
+func (api *RoleApi) getPage(getPageReq GetPageReq) (GetPageRep, error) {
 
 	querys := api.makeQuery(getPageReq)
 

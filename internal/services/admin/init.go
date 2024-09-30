@@ -25,7 +25,7 @@ func setupSvcCtx(svcCtx *types.SvcCtx) *types.SvcCtx {
 
 func SetupSvcCtx(svcCtx *types.SvcCtx) *types.SvcCtx {
 	ctx := setupSvcCtx(svcCtx)
-	ctx.Router.Use(middlewares.JwtAuth())
+	ctx.Router.Use(middlewares.JwtAuth(svcCtx.Cache))
 	return ctx
 }
 

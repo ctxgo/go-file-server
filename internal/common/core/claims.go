@@ -20,6 +20,11 @@ func GetUserId(c *gin.Context) int {
 	return claimsData.UserId
 }
 
+func GetRoleKey(c *gin.Context) string {
+	claimsData := ExtractClaims(c)
+	return claimsData.RoleKey
+}
+
 func GetUserName(c *gin.Context) string {
 	claimsData := ExtractClaims(c)
 	return claimsData.Username
