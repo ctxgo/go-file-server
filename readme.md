@@ -79,7 +79,9 @@ docker build -t go-file-server .
 
 ## 部署
 ### docker 部署
-> 注意：修改 config.yaml，密码部分都是弱密码
+> ⚠️ 注意修改 config.yaml，密码部分都是弱密码
+
+> ⚠️ 如果使用 Nginx 代理，请设置 `proxy_buffering off;`，以解决图表显示异常的问题
 ```shell
 cd deploy/docker
 # 启动

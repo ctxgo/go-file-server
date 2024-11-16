@@ -154,6 +154,7 @@ func (api *FsApi) checkDownloadPermission(roleKey, uriPath string) error {
 	if !ok {
 		return core.NewApiErr(nil).
 			SetHttpCode(global.UnauthorizedError).
+			SetBizCode(global.BizAccessDenied).
 			SetMsg("无权限")
 	}
 	return nil

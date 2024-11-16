@@ -48,7 +48,7 @@ func JwtAuth(cache cache.AdapterCache) gin.HandlerFunc {
 			if err != nil {
 				zlog.SugLog.Error(err)
 				core.ErrRep().
-					SetHttpCode(global.UnauthorizedError).
+					SetHttpCode(global.HttpSuccess).
 					SetBizCode(global.BizUnauthorizedErr).
 					SetMsg(err.Error()).
 					SendGin(c)
