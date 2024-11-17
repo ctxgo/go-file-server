@@ -19,7 +19,7 @@ func NewOperaLogRepository(db *gorm.DB) *OperaLogRepository {
 func WithOperaPaginateById(pageSize int, pageIndex int) base.DbScope {
 	return func(db *gorm.DB) *gorm.DB {
 		return db.Scopes(
-			base.WithOrderBy("id", false),
+			base.WithOrderBy("id", true),
 			base.WithPaginate(pageSize, pageIndex),
 		)
 	}

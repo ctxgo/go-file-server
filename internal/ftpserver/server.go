@@ -244,13 +244,21 @@ func (s *Server) AuthUser(cc serverlib.ClientContext, user, pass string) (server
 		}
 	}
 
-	result, err := s.requestGroup.Do(key, func() (interface{}, error) {
-		go s.loginLogRepo.Create(&models.SysLoginLog{
-			Username: user,
-			Remark:   "ftp",
-			Msg:      "login",
-			Ipaddr:   cc.RemoteAddr().String(),
-		})
+	result, err := s.requestGroup.Do(key, func() (any interface{}, err error) {
+		var status string = "1"
+		defer func() {
+			if err != nil {
+				status = "2"
+			}
+
+			go s.loginLogRepo.Create(&models.SysLoginLog{
+				Username: user,
+				Remark:   "ftp",
+				Msg:      "ftp",
+				Ipaddr:   cc.RemoteAddr().String(),
+				Status:   status,
+			})
+		}()
 		return s.createSession(key, user, pass)
 	})
 

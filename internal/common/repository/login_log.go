@@ -23,7 +23,7 @@ func (r *LoginLogRepository) Create(log *models.SysLoginLog) error {
 func WithLoginPaginateById(pageSize int, pageIndex int) base.DbScope {
 	return func(db *gorm.DB) *gorm.DB {
 		return db.Scopes(
-			base.WithOrderBy("id", false),
+			base.WithOrderBy("id", true),
 			base.WithPaginate(pageSize, pageIndex),
 		)
 	}

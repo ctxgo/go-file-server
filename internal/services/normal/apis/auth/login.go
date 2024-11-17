@@ -32,8 +32,7 @@ func (u *Authenticator) AuthHandler(c *gin.Context) {
 
 	var loginVals LoginReq
 	var status = "1"
-	var msg = "登录成功"
-	var userName = ""
+	var msg = "web"
 	err := c.ShouldBind(&loginVals)
 	if err != nil {
 		return
@@ -41,11 +40,11 @@ func (u *Authenticator) AuthHandler(c *gin.Context) {
 
 	defer func() {
 		if err != nil {
-			status = "0"
-			msg = "登录失败"
+			status = "2"
+			msg = "web"
 			c.Error(err)
 		}
-		go u.RecordLogin(c, userName, status, msg)
+		go u.RecordLogin(c, loginVals.Username, status, msg)
 	}()
 	var user *models.SysUser
 	user, err = u.verify(loginVals)
@@ -53,7 +52,6 @@ func (u *Authenticator) AuthHandler(c *gin.Context) {
 		err = core.NewApiBizErr(err).SetMsg(err.Error()).SetBizCode(global.BizBadRequest)
 		return
 	}
-	userName = user.Username
 	var token, expire string
 	token, expire, err = u.createToken(user)
 	if err != nil {

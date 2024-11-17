@@ -35,6 +35,7 @@ func WithDeletedAtIsNull(s bool) base.DbScope {
 	}
 	return base.WithQuery("deleted_at IS NOT NULL")
 }
+
 func WithOrderByMenuSort(bl bool) base.DbScope {
 	return base.WithOrderBy("sort", bl)
 }
