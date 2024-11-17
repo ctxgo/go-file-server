@@ -176,7 +176,7 @@ func InitFtpServer(svcCtx *types.SvcCtx) (*ftpserver.Server, error) {
 	return ftpserver.NewServer(
 		svcCtx,
 		ftpserver.WithAddr(ftpCfg.Addr),
-
+		ftpserver.WithPublicHost(ftpCfg.PublicHost),
 		ftpserver.WithPassivePortRange(ftpCfg.PassivePortStart, ftpCfg.PassivePortEnd),
 		ftpserver.WithLogger(zlog.SugLog),
 	)

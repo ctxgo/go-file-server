@@ -68,6 +68,12 @@ func WithAddr(addr string) opt {
 	}
 }
 
+func WithPublicHost(host string) opt {
+	return func(s *Server) {
+		s.publicHost = host
+	}
+}
+
 func WithPassivePortRange(start, end int) opt {
 	return func(s *Server) {
 		s.passivePortRange = &serverlib.PortRange{
@@ -114,7 +120,7 @@ func (s *Server) ClientConnected(cc serverlib.ClientContext) (string, error) {
 	defer s.nbClientsSync.Unlock()
 	s.nbClients++
 	s.logger.Infof(
-		"Client connected, clientId: %d, remoteAddr: %s, nbClients: %s.",
+		"Client connected, clientId: %d, remoteAddr: %s, nbClients: %d.",
 		cc.ID(), cc.RemoteAddr().String(), s.nbClients,
 	)
 	return "ftpserver", nil
@@ -127,7 +133,7 @@ func (s *Server) ClientDisconnected(cc serverlib.ClientContext) {
 
 	s.nbClients--
 	s.logger.Infof(
-		"Client disconnected, clientId: %d, remoteAddr: %s, nbClients: %s.",
+		"Client disconnected, clientId: %d, remoteAddr: %s, nbClients: %d.",
 		cc.ID(), cc.RemoteAddr().String(), s.nbClients,
 	)
 	s.considerEnd()

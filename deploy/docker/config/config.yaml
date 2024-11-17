@@ -64,4 +64,5 @@ ftp:
   addr: :32121
   passivePortStart: 32122
   passivePortEnd: 32125
-#  publicHost: yourhost
+  #外网ip地址
+  publicHost: yourhost
