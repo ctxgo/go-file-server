@@ -79,6 +79,7 @@ func initCache() (c cache.AdapterCache, err error) {
 			c, err = cache.NewRedis(&redis.Options{
 				Addr:     config.CacheCfg.Redis.Addr,
 				Password: config.CacheCfg.Redis.Password,
+				DB:       config.CacheCfg.Redis.DB,
 			})
 			if err != nil {
 				err = errors.Errorf("open redis faild , host: %s  err: %v",
