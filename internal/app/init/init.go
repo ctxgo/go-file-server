@@ -154,7 +154,6 @@ func initFileIndexer(cache cache.AdapterCache) (*pathtool.FileIndexer, error) {
 		pathtool.WithStorageType(pathtool.UseDisk),
 		pathtool.WithUpdateCallback(updateCallback),
 	)
-
 }
 
 func initBaseDir(realPath string) {

@@ -2,9 +2,9 @@ package role
 
 import (
 	"fmt"
-	"go-file-server/internal/services/admin/models"
 	"go-file-server/internal/common/core"
 	"go-file-server/internal/common/repository"
+	"go-file-server/internal/services/admin/models"
 	"go-file-server/pkgs/base"
 	"strings"
 
@@ -79,8 +79,9 @@ func (api *RoleApi) updateFsPermissions(updateReq UpdateFsReq) error {
 	if err != nil {
 		return errors.WithStack(err)
 	}
-
-	addDefaultRole(role.RoleKey, &updateReq)
+	if len(updateReq.FsPermissions) != 0 {
+		addDefaultRole(role.RoleKey, &updateReq)
+	}
 
 	var policiesToRemove [][]string
 	var policiesToAdd [][]string

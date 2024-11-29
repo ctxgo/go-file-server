@@ -141,8 +141,3 @@ func (dbCfg *DbConfig) ApplyPlugin() {
 		dbCfg.db.Use(retryPluginInstance)
 	}
 }
-
-func CheckTableIfNotExists(db *gorm.DB, dst interface{}) bool {
-	Migrator := db.Migrator()
-	return Migrator.HasTable(dst)
-}

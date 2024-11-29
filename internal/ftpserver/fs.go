@@ -11,6 +11,7 @@ import (
 	"go-file-server/internal/services/admin/apis/role"
 	"go-file-server/pkgs/cache"
 	"go-file-server/pkgs/utils/limiter"
+	"go-file-server/pkgs/zlog"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -44,19 +45,50 @@ func (f *FileServerFs) VerifPath(name string, action string) (string, error) {
 	if f.roleKey == "admin" {
 		return utils.GetRealPath(name)
 	}
-	if name != "/" {
-		name = strings.TrimLeft(name, "/")
-	}
+
 	homePath, err := decryptPath(name)
 	if err != nil {
 		return "", err
 	}
 	requestParh := "/api/v1/fs" + homePath
+	res, err := f.casbinEnforcer.Enforce(f.roleKey, requestParh, action)
+	if err != nil {
+		zlog.SugLog.Error(err)
+		return "", errors.New("内部服务异常")
+	}
+	if !res {
+		zlog.SugLog.Error(err)
+		return "", errors.Errorf(
+			"您没有路径 %s 的%s权限",
+			finalVisualPath(name, homePath),
+			parsedActionDescription(action))
+	}
 	err = middlewares.CasbinEnforce(f.casbinEnforcer, f.roleKey, requestParh, action)
 	if err != nil {
 		return "", err
 	}
 	return utils.GetRealPath(homePath)
+}
+
+func finalVisualPath(path, decryptPath string) string {
+	if path == decryptPath {
+		return path
+	}
+	return fmt.Sprintf("%s(%s)", path, decryptPath)
+}
+func parsedActionDescription(action string) string {
+	switch action {
+	case "GET":
+		return "查看"
+	case "POST":
+		return "新增"
+	case "PUT":
+		return "修改"
+	case "DELETE":
+		return "删除"
+	default:
+		return "操作"
+	}
 }
 
 func (f *FileServerFs) Chmod(name string, mode fs.FileMode) error {
@@ -262,7 +294,10 @@ func (f *FileServerFs) listNormalPath() ([]os.FileInfo, error) {
 	var files []os.FileInfo
 	policies := f.casbinEnforcer.GetFilteredPolicy(0, f.roleKey, "", "GET", "fs")
 	if len(policies) == 0 {
-		return nil, errors.Errorf("无任何目录权限，请联系管理员赋权")
+		return files, nil
+		// 这里如果返回错误，ftpserverlib库捕获到错误会返回450状态码,
+		// 对于450状态码，lftp客户端一致重试
+		// return files, errors.Errorf("无任何目录权限，请联系管理员赋权")
 	}
 	for _, p := range policies {
 
@@ -307,12 +342,19 @@ func encryptPath(path string) string {
 
 // 解密逻辑：还原加密路径
 func decryptPath(encryptedPath string) (string, error) {
+
+	if encryptedPath == "/" {
+		return "/", nil
+	}
+
 	// 根据 "-" 拆分出加密部分和最后一段
 	parts := strings.Split(encryptedPath, "-")
 	if len(parts) < 2 {
 		return encryptedPath, nil
 	}
-	encodedPart := parts[0]
+
+	encodedPart := strings.TrimLeft(parts[0], "/")
+
 	lastPart := parts[1]
 
 	// 还原 Base64URL 编码的部分，补充丢失的 "="

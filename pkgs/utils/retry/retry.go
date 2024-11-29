@@ -1,6 +1,7 @@
 package retry
 
 import (
+	"context"
 	"fmt"
 	"time"
 )
@@ -36,8 +37,12 @@ func WithRetryableErrorCheck(check retryableError) func(*RetryOptions) {
 	}
 }
 
-// Retry 重试器，接收一个函数和多个配置选项
 func Retry(fn func() error, opts ...func(*RetryOptions)) error {
+	return RetryWithCtx(context.Background(), fn, opts...)
+}
+
+// Retry 重试器，接收一个函数和多个配置选项
+func RetryWithCtx(ctx context.Context, fn func() error, opts ...func(*RetryOptions)) error {
 	options := RetryOptions{
 		Attempts:         5,                                    // 默认重试次数
 		Delay:            2 * time.Second,                      // 默认延迟
@@ -48,22 +53,31 @@ func Retry(fn func() error, opts ...func(*RetryOptions)) error {
 	for _, opt := range opts {
 		opt(&options)
 	}
-	if options.Attempts == 0 {
-		options.Attempts = 1
+
+	// 检查上下文是否已取消
+	if ctxErr := ctx.Err(); ctxErr != nil {
+		return ctxErr
 	}
 	var err error
-	for i := 0; i < options.Attempts; i++ {
+	attempt := 0
+
+	for attempt < options.Attempts || options.Attempts < 1 {
+		attempt++
 		err = fn()
 		if err == nil {
 			return nil
 		}
 
-		fmt.Printf("Attempt %d failed with error: %v\n", i+1, err) // 打印错误信息
+		fmt.Printf("Attempt %d failed with error: %v\n", attempt, err) // 打印错误信息
 		if !options.IsRetryableError(err) {
 			return err
 		}
 
-		time.Sleep(options.Delay)
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case <-time.After(options.Delay):
+		}
 	}
 	return err
 }
