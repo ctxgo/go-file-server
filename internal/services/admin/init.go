@@ -3,6 +3,7 @@ package admin
 import (
 	"context"
 	"go-file-server/internal/common/middlewares"
+	"go-file-server/internal/common/repository"
 	"go-file-server/internal/common/types"
 	"go-file-server/internal/services/admin/routers"
 	"go-file-server/pkgs/cache"
@@ -25,7 +26,11 @@ func setupSvcCtx(svcCtx *types.SvcCtx) *types.SvcCtx {
 
 func SetupSvcCtx(svcCtx *types.SvcCtx) *types.SvcCtx {
 	ctx := setupSvcCtx(svcCtx)
-	ctx.Router.Use(middlewares.JwtAuth(svcCtx.Cache))
+	authenticator := middlewares.NewAuthenticator(
+		repository.NewUserTokenRepository(ctx.Db),
+		ctx.Cache,
+	)
+	ctx.Router.Use(middlewares.Auth(authenticator))
 	return ctx
 }
 

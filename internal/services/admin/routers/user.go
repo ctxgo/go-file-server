@@ -12,6 +12,9 @@ func RegisterUserRoutes(svc *types.SvcCtx, userAPI *user.UserAPI) {
 	{
 
 		api.PUT("pwd", userAPI.UpdatePwd)
+		api.POST("token", userAPI.GenToken)
+		api.GET("token", userAPI.GetToken)
+		api.DELETE("token", userAPI.DeleteToken)
 		api.GET("access", userAPI.GetAccess)
 		api.GET("profile", userAPI.GetProfile)
 		api.GET("menu", userAPI.GetMenu)

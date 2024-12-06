@@ -2,6 +2,7 @@ package routers
 
 import (
 	"go-file-server/internal/common/middlewares"
+	"go-file-server/internal/common/repository"
 	"go-file-server/internal/common/types"
 	"go-file-server/internal/services/admin/apis/fs"
 )
@@ -9,13 +10,20 @@ import (
 type FsSvcCtx *types.SvcCtx
 
 func RegisterFsRoutes(svc FsSvcCtx, fsApi *fs.FsApi) {
+
+	authenticator := middlewares.NewAuthenticator(
+		repository.NewUserTokenRepository(svc.Db),
+		svc.Cache,
+	)
+	fsApi.Authenticator = authenticator
+
 	router := svc.Router.Group("/fsd")
 	{
 		router.GET("/*path", fsApi.Download)
 	}
 
 	authRouter := svc.Router.Group("")
-	authRouter.Use(middlewares.JwtAuth(svc.Cache))
+	authRouter.Use(middlewares.Auth(authenticator))
 
 	{
 		authRouter.GET("/sse/fs/info", fsApi.GetInfo)

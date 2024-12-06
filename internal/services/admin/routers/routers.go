@@ -1,6 +1,7 @@
 package routers
 
 import (
+	"go-file-server/internal/common/repository"
 	"go-file-server/internal/services/admin/apis/avatar"
 	"go-file-server/internal/services/admin/apis/dept"
 	"go-file-server/internal/services/admin/apis/fs"
@@ -10,7 +11,6 @@ import (
 	"go-file-server/internal/services/admin/apis/role"
 	"go-file-server/internal/services/admin/apis/system"
 	"go-file-server/internal/services/admin/apis/user"
-	"go-file-server/internal/common/repository"
 
 	"go.uber.org/fx"
 )
@@ -19,6 +19,7 @@ var repos = fx.Options(
 	fx.Provide(
 		repository.NewLoginLogRepository,
 		repository.NewUserRepository,
+		repository.NewUserTokenRepository,
 		repository.NewRoleRepository,
 		repository.NewOperaLogRepository,
 		repository.NewDeptRepository,

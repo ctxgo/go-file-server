@@ -82,6 +82,7 @@ func migrateaTable(db *gorm.DB) error {
 		&models.SysMenu{},
 		&models.SysRole{},
 		&models.SysUser{},
+		&models.UserToken{},
 		&models.SysDept{},
 	)
 }

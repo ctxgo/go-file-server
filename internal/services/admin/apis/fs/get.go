@@ -97,7 +97,7 @@ func (api *FsApi) getPermissions(roleKey, path string) []string {
 	for _, p := range policies {
 		rolePath := strings.TrimSuffix(p[1], ".*")
 
-		if !strings.HasPrefix(rolePath, path) {
+		if !strings.HasPrefix(path, rolePath) {
 			continue
 		}
 		if funk.Contains(data, p[2]) {
@@ -149,6 +149,9 @@ func (api *FsApi) listNormalPath(roleKey, realPath string, getReq GetReq) (GetPa
 	for _, p := range policies {
 
 		fsPath := role.ParseFsRolepath(p[1])
+		if fsPath == "/" {
+			return api.listPath(realPath, getReq)
+		}
 
 		realPath, err := utils.GetRealPath(fsPath)
 		if err != nil {

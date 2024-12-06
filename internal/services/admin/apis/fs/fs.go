@@ -3,6 +3,7 @@ package fs
 import (
 	"fmt"
 	"go-file-server/internal/common/core"
+	"go-file-server/internal/common/middlewares"
 	"go-file-server/internal/common/repository"
 	"go-file-server/internal/services/admin/apis/fs/utils"
 	"go-file-server/internal/services/admin/apis/role"
@@ -20,6 +21,7 @@ import (
 )
 
 type FsApi struct {
+	Authenticator  *middlewares.Authenticator
 	roleRepo       *repository.RoleRepository
 	fsRepo         *repository.FsRepository
 	casbinEnforcer *casbin.CachedEnforcer

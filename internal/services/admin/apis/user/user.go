@@ -6,22 +6,25 @@ import (
 )
 
 type UserAPI struct {
-	userRepo *repository.UserRepository
-	roleRepo *repository.RoleRepository
-	menuRepo *repository.MenuRepository
-	cache    cache.AdapterCache
+	userRepo      *repository.UserRepository
+	userTokenRepo *repository.UserTokenRepository
+	roleRepo      *repository.RoleRepository
+	menuRepo      *repository.MenuRepository
+	cache         cache.AdapterCache
 }
 
 func NewUserAPI(
 	userRepo *repository.UserRepository,
+	userTokenRepo *repository.UserTokenRepository,
 	roleRepo *repository.RoleRepository,
 	menuRepo *repository.MenuRepository,
 	cache cache.AdapterCache,
 ) *UserAPI {
 	return &UserAPI{
-		userRepo: userRepo,
-		roleRepo: roleRepo,
-		menuRepo: menuRepo,
-		cache:    cache,
+		userRepo:      userRepo,
+		userTokenRepo: userTokenRepo,
+		roleRepo:      roleRepo,
+		menuRepo:      menuRepo,
+		cache:         cache,
 	}
 }

@@ -25,12 +25,13 @@ func (ctx *SvcCtx) Clone() *SvcCtx {
 }
 
 type JwtClaims struct {
-	UserId    int    `json:"user_id"`
-	Username  string `json:"user_name"`
-	RoleId    int    `json:"role_id"`
-	RoleKey   string `json:"role_key"`
-	RoleName  string `json:"role_name"`
-	DataScope string `json:"data_scope"`
+	UserId          int    `json:"user_id"`
+	Username        string `json:"user_name"`
+	RoleId          int    `json:"role_id"`
+	RoleKey         string `json:"role_key"`
+	IsPersonalToken bool   `json:"is_personal_token"`
+	RoleName        string `json:"role_name"`
+	DataScope       string `json:"data_scope"`
 	jwt.StandardClaims
 }
 

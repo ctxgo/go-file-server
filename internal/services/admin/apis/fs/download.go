@@ -161,13 +161,13 @@ func (api *FsApi) checkDownloadPermission(roleKey, uriPath string) error {
 }
 
 func (api *FsApi) parseToken(downloadInfo DownloadInfo) (*types.JwtClaims, error) {
-	jwtClaims, err := middlewares.ParseToken(downloadInfo.Token)
+	jwtClaims, err := api.Authenticator.ValidateToken(downloadInfo.Token)
 	if err != nil {
 		return nil, core.NewApiErr(err).
 			SetBizCode(global.BizUnauthorizedErr).
 			SetMsg(err.Error())
 	}
-	return jwtClaims, err
+	return jwtClaims, nil
 }
 
 func (api *FsApi) pasreUri(path string) (DownloadInfo, error) {

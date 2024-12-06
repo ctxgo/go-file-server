@@ -50,7 +50,7 @@ func (f *FileServerFs) VerifPath(name string, action string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	requestParh := "/api/v1/fs" + homePath
+	requestParh := "/api/v1/fs" + filepath.Join("/", homePath)
 	res, err := f.casbinEnforcer.Enforce(f.roleKey, requestParh, action)
 	if err != nil {
 		zlog.SugLog.Error(err)
@@ -164,11 +164,8 @@ func (f *FileServerFs) ReadDir(name string) ([]os.FileInfo, error) {
 	}
 
 	if name != "/" || f.roleKey == "admin" {
-		realPath, err := f.VerifPath(name, Read)
-		if err != nil {
-			return nil, err
-		}
-		return f.listPath(realPath)
+
+		return f.listPath(name)
 	}
 
 	return f.listNormalPath()
@@ -276,7 +273,12 @@ func (f *FileServerFs) ensureTempDir() (string, error) {
 
 func (f *FileServerFs) listPath(path string) ([]os.FileInfo, error) {
 
-	dir, err := os.Open(path)
+	realPath, err := f.VerifPath(path, Read)
+	if err != nil {
+		return nil, err
+	}
+
+	dir, err := os.Open(realPath)
 	if err != nil {
 		return nil, err
 	}
@@ -302,8 +304,10 @@ func (f *FileServerFs) listNormalPath() ([]os.FileInfo, error) {
 	for _, p := range policies {
 
 		fsPath := role.ParseFsRolepath(p[1])
-
-		if strings.HasPrefix(fsPath, "/.tmp") {
+		if fsPath == "/" {
+			return f.listPath("/")
+		}
+		if strings.HasPrefix(fsPath, ".tmp") {
 			_, err := f.ensureTempDir()
 			if err != nil {
 				return nil, err
@@ -330,7 +334,7 @@ func (f *FileServerFs) listNormalPath() ([]os.FileInfo, error) {
 func encryptPath(path string) string {
 	path = filepath.Clean(path)
 	parts := strings.Split(path, "/")
-	if len(parts) <= 2 {
+	if len(parts) < 2 {
 		return path
 	}
 	lastPart := parts[len(parts)-1]

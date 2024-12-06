@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"go-file-server/internal/common/core"
 	"go-file-server/internal/common/global"
+	"go-file-server/internal/common/repository"
 	"go-file-server/internal/common/types"
 	"go-file-server/pkgs/cache"
 	"go-file-server/pkgs/config"
@@ -15,6 +16,7 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
+	"gorm.io/gorm"
 )
 
 const lastTokenResetPrefix = "last_token_reset:"
@@ -40,7 +42,7 @@ func GetToken(c *gin.Context) (string, error) {
 }
 
 // JwtAuth 中间件，检查token
-func JwtAuth(cache cache.AdapterCache) gin.HandlerFunc {
+func Auth(authenticator *Authenticator) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var tokenStr string
 		var err error
@@ -59,23 +61,88 @@ func JwtAuth(cache cache.AdapterCache) gin.HandlerFunc {
 		if err != nil {
 			return
 		}
+		var jwtClaims *types.JwtClaims
+		jwtClaims, err = authenticator.ValidateToken(tokenStr)
 
-		jwtClaims, err := ParseToken(tokenStr)
 		if err != nil {
 			return
 		}
-		var lastTokenReset int64
-		lastTokenReset, err = GetLastTokenReset(cache, jwtClaims.UserId)
-		if err != nil {
-			return
-		}
-		if jwtClaims.IssuedAt < lastTokenReset {
-			err = errors.Errorf(global.ErrTokenRevoked)
-			return
-		}
+
 		c.Set(global.JwtPayloadKey, jwtClaims)
 
 	}
+}
+
+type Authenticator struct {
+	cache         cache.AdapterCache
+	userTokenRepo *repository.UserTokenRepository
+}
+
+func NewAuthenticator(
+	userTokenRepo *repository.UserTokenRepository,
+	cache cache.AdapterCache,
+) *Authenticator {
+	return &Authenticator{
+		userTokenRepo: userTokenRepo,
+		cache:         cache,
+	}
+}
+
+func (a *Authenticator) ValidateToken(tokenStr string) (*types.JwtClaims, error) {
+	jwtClaims, err := ParseToken(tokenStr)
+	if err != nil {
+		return jwtClaims, err
+	}
+	var lastTokenReset int64
+	lastTokenReset, err = GetLastTokenReset(a.cache, jwtClaims.UserId)
+	if err != nil {
+		return jwtClaims, err
+	}
+	if jwtClaims.IssuedAt < lastTokenReset {
+		return jwtClaims, errors.Errorf(global.ErrTokenRevoked)
+
+	}
+
+	if jwtClaims.IsPersonalToken {
+		return jwtClaims, a.validatePersonalToken(jwtClaims, tokenStr)
+	}
+	return jwtClaims, nil
+}
+
+func GenPersonalTokenRevokedKey(token string) string {
+	return fmt.Sprintf("%s:%s", global.PersonalTokenRevokedKey, token)
+}
+
+func (a *Authenticator) validatePersonalToken(jwtClaims *types.JwtClaims, tokenStr string) error {
+	tokenKey := GenPersonalTokenRevokedKey(tokenStr)
+	isValidToken, err := a.cache.Get(tokenKey)
+	if err != nil && !cache.IsKeyNotFoundError(err) {
+		return errors.WithStack(err)
+	}
+
+	switch isValidToken {
+	case "false":
+		return errors.Errorf(global.ErrTokenRevoked)
+	case "true":
+		return nil
+	}
+
+	_, err = a.userTokenRepo.FindOne(repository.WithUserTokenUserId(jwtClaims.UserId),
+		repository.WithUserToken(tokenStr))
+
+	if err == nil {
+		return a.cache.Set(tokenKey, "true", 24*time.Hour)
+	}
+
+	if err != gorm.ErrRecordNotFound {
+		return errors.WithStack(err)
+	}
+
+	err = a.cache.Set(tokenKey, "false", 24*time.Hour)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+	return errors.Errorf(global.ErrTokenRevoked)
 }
 
 func CreateToken(f func(*types.JwtClaims)) (string, string, error) {

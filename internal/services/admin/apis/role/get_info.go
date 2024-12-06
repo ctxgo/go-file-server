@@ -1,10 +1,10 @@
 package role
 
 import (
-	"go-file-server/internal/services/admin/models"
 	"go-file-server/internal/common/core"
 	"go-file-server/internal/common/global"
 	"go-file-server/internal/common/repository"
+	"go-file-server/internal/services/admin/models"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -83,7 +83,7 @@ func (api *RoleApi) getFsRoles(roleKey string) []models.FsPermissions {
 }
 
 func ParseFsRolepath(path string) string {
-	path = strings.TrimPrefix(path, "/api/v1/fs")
+	path = strings.TrimPrefix(path, "/api/v1/fs/")
 	path = strings.TrimSuffix(path, ".*")
 	if path == "" {
 		path = "/"

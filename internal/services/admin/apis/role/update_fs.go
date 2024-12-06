@@ -6,6 +6,7 @@ import (
 	"go-file-server/internal/common/repository"
 	"go-file-server/internal/services/admin/models"
 	"go-file-server/pkgs/base"
+	"path/filepath"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -71,6 +72,14 @@ func (api *RoleApi) updateFsRateLimit(updateReq UpdateFsReq) error {
 		updateReq.RateLimit, 0)
 }
 
+func buildRolePath(path string) string {
+	if path == "/" {
+		return "/api/v1/fs/.*"
+	}
+	return filepath.Join("/api/v1/fs", path) + ".*"
+
+}
+
 func (api *RoleApi) updateFsPermissions(updateReq UpdateFsReq) error {
 
 	role, err := api.roleRepo.FindOne(
@@ -88,7 +97,7 @@ func (api *RoleApi) updateFsPermissions(updateReq UpdateFsReq) error {
 	mp := make(map[string][]string, 0)
 	for _, p := range updateReq.FsPermissions {
 		path := p.Path
-		path = "/api/v1/fs" + path + ".*"
+		path = buildRolePath(path)
 		for _, action := range p.Permissions {
 			mp[role.RoleKey+"-"+path+"-"+action+"-fs"] = []string{
 				role.RoleKey, path, action, "fs"}
