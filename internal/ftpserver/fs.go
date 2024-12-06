@@ -47,6 +47,7 @@ func (f *FileServerFs) VerifPath(name string, action string) (string, error) {
 	}
 
 	homePath, err := decryptPath(name)
+
 	if err != nil {
 		return "", err
 	}
@@ -59,9 +60,9 @@ func (f *FileServerFs) VerifPath(name string, action string) (string, error) {
 	if !res {
 		zlog.SugLog.Error(err)
 		return "", errors.Errorf(
-			"您没有路径 %s 的%s权限",
+			"您没有路径 %s 的操作权限",
 			finalVisualPath(name, homePath),
-			parsedActionDescription(action))
+		)
 	}
 	err = middlewares.CasbinEnforce(f.casbinEnforcer, f.roleKey, requestParh, action)
 	if err != nil {
@@ -74,22 +75,26 @@ func finalVisualPath(path, decryptPath string) string {
 	if path == decryptPath {
 		return path
 	}
+	if !strings.HasPrefix(decryptPath, "/") {
+		return path
+	}
 	return fmt.Sprintf("%s(%s)", path, decryptPath)
 }
-func parsedActionDescription(action string) string {
-	switch action {
-	case "GET":
-		return "查看"
-	case "POST":
-		return "新增"
-	case "PUT":
-		return "修改"
-	case "DELETE":
-		return "删除"
-	default:
-		return "操作"
-	}
-}
+
+// func parsedActionDescription(action string) string {
+// 	switch action {
+// 	case "GET":
+// 		return "查看"
+// 	case "POST":
+// 		return "新增"
+// 	case "PUT":
+// 		return "修改"
+// 	case "DELETE":
+// 		return "删除"
+// 	default:
+// 		return "操作"
+// 	}
+// }
 
 func (f *FileServerFs) Chmod(name string, mode fs.FileMode) error {
 	path, err := f.VerifPath(name, Update)
@@ -347,30 +352,26 @@ func encryptPath(path string) string {
 // 解密逻辑：还原加密路径
 func decryptPath(encryptedPath string) (string, error) {
 
-	if encryptedPath == "/" {
-		return "/", nil
+	encryptedParts := strings.SplitN(encryptedPath, "/", 3)
+	if len(encryptedParts) < 2 {
+		return encryptedPath, nil
 	}
 
+	encryptedStr := encryptedParts[1]
+
 	// 根据 "-" 拆分出加密部分和最后一段
-	parts := strings.Split(encryptedPath, "-")
+	parts := strings.Split(encryptedStr, "-")
 	if len(parts) < 2 {
 		return encryptedPath, nil
 	}
 
-	encodedPart := strings.TrimLeft(parts[0], "/")
-
-	lastPart := parts[1]
-
-	// 还原 Base64URL 编码的部分，补充丢失的 "="
-	missingPadding := len(encodedPart) % 4
-	if missingPadding > 0 {
-		encodedPart += strings.Repeat("=", 4-missingPadding)
-	}
-
-	decodedBytes, err := base64.URLEncoding.DecodeString(encodedPart)
+	decodedBytes, err := base64.RawURLEncoding.DecodeString(parts[0])
 	if err != nil {
 		return "", fmt.Errorf("error decoding Base64URL: %v", err)
 	}
-
-	return string(decodedBytes) + "/" + lastPart, nil
+	parts[0] = string(decodedBytes)
+	if len(encryptedParts) > 2 {
+		parts = append(parts, encryptedParts[2:]...)
+	}
+	return filepath.Join(parts...), nil
 }
