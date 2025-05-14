@@ -109,7 +109,7 @@ func NewEnforcer(opts ...Option) (*casbin.CachedEnforcer, error) {
 	if config.Watcher != nil {
 		enforcer.SetWatcher(config.Watcher)
 	}
-	if config.Watcher != nil {
+	if config.Cache != nil {
 		enforcer.SetCache(config.Cache)
 	}
 	return enforcer, nil
