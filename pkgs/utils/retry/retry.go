@@ -7,33 +7,51 @@ import (
 )
 
 // 定义错误检查函数类型
-type retryableError func(error) bool
+type retryCondition func(error) bool
+
+type ILogger interface {
+	Warnf(template string, args ...interface{})
+}
+
+type Logger struct{}
+
+func (l *Logger) Warnf(template string, args ...interface{}) {
+	fmt.Printf(template, args...)
+}
 
 // 重试选项结构体
 type RetryOptions struct {
-	Attempts         int            // 最大尝试次数
-	Delay            time.Duration  // 尝试之间的延迟
-	IsRetryableError retryableError // 检查错误是否可重试的函数
+	logger         ILogger
+	attempts       int            // 最大尝试次数
+	delay          time.Duration  // 尝试之间的延迟
+	retryCondition retryCondition // 检查错误是否可重试的函数
 }
 
 // 设置重试次数的选项
 func WithAttempts(n int) func(*RetryOptions) {
 	return func(opts *RetryOptions) {
-		opts.Attempts = n
+		opts.attempts = n
+	}
+}
+
+// 设置logger
+func WithLogger(l ILogger) func(*RetryOptions) {
+	return func(opts *RetryOptions) {
+		opts.logger = l
 	}
 }
 
 // 设置重试间隔的选项
 func WithDelay(d time.Duration) func(*RetryOptions) {
 	return func(opts *RetryOptions) {
-		opts.Delay = d
+		opts.delay = d
 	}
 }
 
 // 设置错误检查函数的选项
-func WithRetryableErrorCheck(check retryableError) func(*RetryOptions) {
+func WithRetryableCondition(f retryCondition) func(*RetryOptions) {
 	return func(opts *RetryOptions) {
-		opts.IsRetryableError = check
+		opts.retryCondition = f
 	}
 }
 
@@ -44,16 +62,18 @@ func Retry(fn func() error, opts ...func(*RetryOptions)) error {
 // Retry 重试器，接收一个函数和多个配置选项
 func RetryWithCtx(ctx context.Context, fn func() error, opts ...func(*RetryOptions)) error {
 	options := RetryOptions{
-		Attempts:         5,                                    // 默认重试次数
-		Delay:            2 * time.Second,                      // 默认延迟
-		IsRetryableError: func(err error) bool { return true }, // 默认始终重试
+		attempts:       5,                                    // 默认重试次数
+		delay:          3 * time.Second,                      // 默认延迟
+		retryCondition: func(err error) bool { return true }, // 默认始终重试
 	}
 
 	// 应用传入的选项
 	for _, opt := range opts {
 		opt(&options)
 	}
-
+	if options.logger == nil {
+		options.logger = &Logger{}
+	}
 	// 检查上下文是否已取消
 	if ctxErr := ctx.Err(); ctxErr != nil {
 		return ctxErr
@@ -61,22 +81,22 @@ func RetryWithCtx(ctx context.Context, fn func() error, opts ...func(*RetryOptio
 	var err error
 	attempt := 0
 
-	for attempt < options.Attempts || options.Attempts < 1 {
+	for attempt < options.attempts || options.attempts < 1 {
 		attempt++
 		err = fn()
 		if err == nil {
 			return nil
 		}
 
-		fmt.Printf("Attempt %d failed with error: %v\n", attempt, err) // 打印错误信息
-		if !options.IsRetryableError(err) {
+		options.logger.Warnf("Attempt %d failed with error: %+v\n", attempt, err) // 打印错误信息
+		if !options.retryCondition(err) {
 			return err
 		}
 
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
-		case <-time.After(options.Delay):
+		case <-time.After(options.delay):
 		}
 	}
 	return err

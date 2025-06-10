@@ -5,6 +5,7 @@ import (
 	"go-file-server/internal/common/core"
 	"go-file-server/internal/common/global"
 	"go-file-server/internal/common/types"
+	"go-file-server/internal/services/admin/models"
 
 	"github.com/casbin/casbin/v2"
 	"github.com/gin-gonic/gin"
@@ -25,7 +26,7 @@ func AuthCheckRole(svc *types.SvcCtx) gin.HandlerFunc {
 func HandlerCheckRole(c *gin.Context, casbinEnforcer *casbin.CachedEnforcer) error {
 	jwtClaims := core.ExtractClaims(c)
 	//检查权限
-	if jwtClaims.RoleKey == "admin" {
+	if jwtClaims.RoleKey == models.AdminRoleKey {
 		return nil
 	}
 	err := CasbinEnforce(casbinEnforcer, jwtClaims.RoleKey, c.Request.URL.Path, c.Request.Method)

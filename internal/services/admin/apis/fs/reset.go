@@ -8,14 +8,15 @@ import (
 
 func (api *FsApi) Reset(c *gin.Context) {
 
-	roleKey := core.ExtractClaims(c).RoleKey
-	if roleKey != "admin" {
-		core.ErrBizRep().SetMsg("无操作权限")
+	if err := core.AssertAdmin(c); err != nil {
+		c.Error(err)
 		return
 	}
-	err := api.fsRepo.ResetIndex()
-	if err != nil {
+
+	if err := api.fsRepo.ResetIndex(); err != nil {
 		c.Error(err)
+		return
 	}
+
 	core.OKRep(nil).SendGin(c)
 }

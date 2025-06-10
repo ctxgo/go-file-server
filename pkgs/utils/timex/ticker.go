@@ -30,8 +30,7 @@ func (it *ImmediateTicker) start(ctx context.Context) {
 	it.C <- time.Now()
 	for {
 		select {
-		case time := <-it.t.C:
-			it.C <- time
+		case it.C <- <-it.t.C:
 		case <-ctx.Done():
 			return
 		}

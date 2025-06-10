@@ -1,9 +1,9 @@
 package role
 
 import (
-	"go-file-server/internal/services/admin/models"
 	"go-file-server/internal/common/core"
 	"go-file-server/internal/common/repository"
+	"go-file-server/internal/services/admin/models"
 	"go-file-server/pkgs/config"
 
 	"github.com/gin-gonic/gin"
@@ -82,7 +82,7 @@ func (api *RoleApi) makePolicies(dataMenus models.SysMenuSlice, roleKey string) 
 			if !mp[roleKey+"-"+api.Path+"-"+api.Action] {
 				mp[roleKey+"-"+api.Path+"-"+api.Action] = true
 				polices = append(polices,
-					[]string{roleKey, api.Path, api.Action, "admin"})
+					[]string{roleKey, api.Path, api.Action, models.AdminRoleKey})
 			}
 		}
 	}

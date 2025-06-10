@@ -42,7 +42,7 @@ func (api *UserAPI) makeMenu(c *gin.Context) (models.SysMenuSlice, error) {
 }
 
 func (api *UserAPI) getMenu(roleKey string, roleId int) (models.SysMenuSlice, error) {
-	if roleKey == "admin" {
+	if roleKey == models.AdminRoleKey {
 		return api.menuRepo.Find(
 			repository.WithOrderByMenuSort(false),
 			repository.WithMenuTypes(models.Directory, models.Menu),
@@ -106,7 +106,7 @@ func buildMenuTree(menus models.SysMenuSlice, parentId int) models.SysMenuSlice 
 		if menu.ParentId != parentId {
 			continue
 		}
-		if menu.MenuType != "Button" { // 只有非"Button"类型的菜单项才继续构建子树
+		if menu.MenuType != models.Button { // 只有非"Button"类型的菜单项才继续构建子树
 			menu.Children = buildMenuTree(menus, menu.MenuId)
 		}
 		children = append(children, menu)

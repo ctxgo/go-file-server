@@ -27,7 +27,7 @@ func RegisterFsRoutes(svc FsSvcCtx, fsApi *fs.FsApi) {
 
 	{
 		authRouter.GET("/sse/fs/info", fsApi.GetInfo)
-		authRouter.GET("/sse/fs/unarchive/*path", fsApi.Unarchiver)
+		authRouter.GET("/sse/fs/unarchive/*path", fsApi.Unarchive)
 		authRouter.PUT("/fs/*path", fsApi.Update)
 		authRouter.GET("/fsu/*path", fsApi.GetDownloadUrl)
 		authRouter.POST("/fsindex", fsApi.Reset)

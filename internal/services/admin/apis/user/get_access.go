@@ -5,6 +5,7 @@ import (
 	"go-file-server/internal/common/global"
 	"go-file-server/internal/common/repository"
 	"go-file-server/internal/common/types"
+	"go-file-server/internal/services/admin/models"
 
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
@@ -49,7 +50,7 @@ func (api *UserAPI) makePermissions(claims *types.JwtClaims, rep *GetAccessRep) 
 
 	rep.Roles = append(rep.Roles, claims.RoleKey)
 
-	if claims.RoleName == "admin" || claims.RoleName == "系统管理员" {
+	if claims.RoleName == models.AdminRoleKey {
 		rep.Permissions = append(rep.Permissions, "*:*:*")
 		rep.Buttons = append(rep.Buttons, "*:*:*")
 		return nil

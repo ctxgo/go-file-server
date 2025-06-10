@@ -7,6 +7,7 @@ import (
 	"go-file-server/internal/common/middlewares"
 	"go-file-server/internal/common/types"
 	"go-file-server/internal/services/admin/apis/fs/utils"
+	"go-file-server/internal/services/admin/models"
 	"go-file-server/pkgs/cache"
 	"go-file-server/pkgs/pathtool"
 	"go-file-server/pkgs/utils/limiter"
@@ -138,7 +139,7 @@ func (api *FsApi) Download(c *gin.Context) {
 }
 
 func (api *FsApi) checkDownloadPermission(roleKey, uriPath string) error {
-	if roleKey == "admin" {
+	if roleKey == models.AdminRoleKey {
 		return nil
 	}
 	apiPath := filepath.Join("/api/v1/fs/", uriPath)

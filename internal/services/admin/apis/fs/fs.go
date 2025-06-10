@@ -10,6 +10,7 @@ import (
 	"go-file-server/pkgs/cache"
 	"go-file-server/pkgs/pathtool"
 	"go-file-server/pkgs/utils/limiter"
+	resourcemanager "go-file-server/pkgs/utils/resource-manager"
 	"go-file-server/pkgs/zlog"
 	"os"
 	"strconv"
@@ -31,7 +32,7 @@ type FsApi struct {
 	//双向map, 用于获取下载链接时，缓存下载元数据和路径id的对应关系
 	idManager utils.IdManager
 	//消息发布器，用于unarchiver.go解压文件时向多个客户端推送解压日志
-	publishers *utils.Publishers[utils.Message]
+	publisherManager *resourcemanager.ResourceManager[*utils.Publisher[utils.Message]]
 	sync.RWMutex
 }
 
@@ -43,13 +44,13 @@ func NewFsApi(
 
 ) *FsApi {
 	return &FsApi{
-		roleRepo:       roleRepo,
-		fsRepo:         fsRepo,
-		casbinEnforcer: casbinEnforcer,
-		cache:          cache,
-		limiterManager: *utils.NewLimiterManager(30*time.Minute, 30*time.Minute),
-		publishers:     utils.NewPublishers[utils.Message](),
-		idManager:      *utils.NewIdManager(3*time.Hour, 3*time.Hour),
+		roleRepo:         roleRepo,
+		fsRepo:           fsRepo,
+		casbinEnforcer:   casbinEnforcer,
+		cache:            cache,
+		limiterManager:   *utils.NewLimiterManager(30*time.Minute, 30*time.Minute),
+		publisherManager: resourcemanager.NewResourceManager[*utils.Publisher[utils.Message]](),
+		idManager:        *utils.NewIdManager(3*time.Hour, 3*time.Hour),
 	}
 }
 func (api *FsApi) execRename(realPath, destination string) error {

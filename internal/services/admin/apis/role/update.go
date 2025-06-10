@@ -1,10 +1,10 @@
 package role
 
 import (
-	"go-file-server/internal/services/admin/models"
 	"go-file-server/internal/common/core"
 	coreModels "go-file-server/internal/common/models"
 	"go-file-server/internal/common/repository"
+	"go-file-server/internal/services/admin/models"
 	"go-file-server/pkgs/base"
 	"time"
 
@@ -105,7 +105,7 @@ func (api *RoleApi) cascadeUpdate(updateReq UpdateReq, data *models.SysRole) err
 }
 
 func (api *RoleApi) updatePolicies(dataMenus models.SysMenuSlice, roleKey string) error {
-	_, err := api.casbinEnforcer.RemoveFilteredPolicy(0, roleKey, "", "", "admin")
+	_, err := api.casbinEnforcer.RemoveFilteredPolicy(0, roleKey, "", "", models.AdminRoleKey)
 	if err != nil {
 		return err
 	}

@@ -4,6 +4,8 @@ import (
 	"go-file-server/internal/common/models"
 )
 
+const AdminRoleKey = "admin"
+
 type FsPermissions struct {
 	Path        string   `json:"path" binding:"required"`
 	Permissions []string `json:"permissions" binding:"required"`

@@ -25,6 +25,13 @@ func (api *UserAPI) UpdatePwd(c *gin.Context) {
 		c.Error(err)
 		return
 	}
+
+	err = core.VerifyResourceOwner(c, req.UserId)
+	if err != nil {
+		c.Error(err)
+		return
+	}
+
 	err = api.updatePwd(req)
 	if err != nil {
 		c.Error(err)
@@ -32,7 +39,6 @@ func (api *UserAPI) UpdatePwd(c *gin.Context) {
 	}
 
 	core.OKRep(nil).SendGin(c)
-
 }
 
 func (api *UserAPI) updatePwd(req UpdatePwdReq) error {

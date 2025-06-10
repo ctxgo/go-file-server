@@ -1,9 +1,9 @@
 package fs
 
 import (
-	"go-file-server/internal/services/admin/apis/fs/utils"
 	"go-file-server/internal/common/core"
 	"go-file-server/internal/common/middlewares"
+	"go-file-server/internal/services/admin/apis/fs/utils"
 	"path/filepath"
 
 	"github.com/gin-gonic/gin"

@@ -6,6 +6,7 @@ import (
 	"go-file-server/internal/common/types"
 	"go-file-server/internal/services/admin/apis/fs/utils"
 	"go-file-server/internal/services/admin/apis/role"
+	"go-file-server/internal/services/admin/models"
 	"go-file-server/pkgs/pathtool"
 	"go-file-server/pkgs/utils/concurrentpool"
 	"go-file-server/pkgs/utils/str"
@@ -86,7 +87,7 @@ func (api *FsApi) GetPage(c *gin.Context) {
 
 func (api *FsApi) getPermissions(roleKey, path string) []string {
 
-	if roleKey == "admin" {
+	if roleKey == models.AdminRoleKey {
 		return []string{"POST", "DELETE", "PUT", "GET"}
 
 	}
@@ -125,7 +126,7 @@ func (api *FsApi) getPage(c *gin.Context, getReq GetReq) (GetPageRep, error) {
 		return GetPageRep{}, core.NewApiBizErr(err).
 			SetMsg(err.Error())
 	}
-	if roleKey == "admin" {
+	if roleKey == models.AdminRoleKey {
 		return api.listAdminPath(realPath, getReq)
 	}
 

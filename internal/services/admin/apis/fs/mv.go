@@ -5,6 +5,7 @@ import (
 	"go-file-server/internal/common/core"
 	"go-file-server/internal/common/global"
 	"go-file-server/internal/services/admin/apis/fs/utils"
+	"go-file-server/internal/services/admin/models"
 	"path/filepath"
 
 	"github.com/gin-gonic/gin"
@@ -33,7 +34,7 @@ func (api *FsApi) move(c *gin.Context, req UpdateReq) {
 }
 func (api *FsApi) checMovePermission(c *gin.Context, req UpdateReq) error {
 	roleKey := core.ExtractClaims(c).RoleKey
-	if roleKey == "admin" {
+	if roleKey == models.AdminRoleKey {
 		return nil
 	}
 	ok, err := api.casbinEnforcer.Enforce(

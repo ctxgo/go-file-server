@@ -9,6 +9,7 @@ import (
 	fsApi "go-file-server/internal/services/admin/apis/fs"
 	"go-file-server/internal/services/admin/apis/fs/utils"
 	"go-file-server/internal/services/admin/apis/role"
+	"go-file-server/internal/services/admin/models"
 	"go-file-server/pkgs/cache"
 	"go-file-server/pkgs/utils/limiter"
 	"go-file-server/pkgs/zlog"
@@ -42,7 +43,7 @@ type FileServerFs struct {
 }
 
 func (f *FileServerFs) VerifPath(name string, action string) (string, error) {
-	if f.roleKey == "admin" {
+	if f.roleKey == models.AdminRoleKey {
 		return utils.GetRealPath(name)
 	}
 
@@ -168,7 +169,7 @@ func (f *FileServerFs) ReadDir(name string) ([]os.FileInfo, error) {
 		}
 	}
 
-	if name != "/" || f.roleKey == "admin" {
+	if name != "/" || f.roleKey == models.AdminRoleKey {
 
 		return f.listPath(name)
 	}
